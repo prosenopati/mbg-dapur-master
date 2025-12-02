@@ -26,6 +26,11 @@ import {
   Shield,
   Truck,
   ArrowLeftRight,
+  FileSpreadsheet,
+  BookOpen,
+  BookText,
+  Scale,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -134,6 +139,36 @@ const navGroups = [
         title: "Financial Reports",
         href: "/dashboard/financial",
         icon: TrendingUp,
+      },
+    ],
+  },
+  {
+    title: "Accounting",
+    items: [
+      {
+        title: "Chart of Accounts",
+        href: "/dashboard/accounting/accounts",
+        icon: FileSpreadsheet,
+      },
+      {
+        title: "Journal Entries",
+        href: "/dashboard/accounting/journal",
+        icon: BookOpen,
+      },
+      {
+        title: "General Ledger",
+        href: "/dashboard/accounting/ledger",
+        icon: BookText,
+      },
+      {
+        title: "Trial Balance",
+        href: "/dashboard/accounting/trial-balance",
+        icon: Scale,
+      },
+      {
+        title: "Financial Statements",
+        href: "/dashboard/accounting/reports",
+        icon: FileText,
       },
     ],
   },
