@@ -20,8 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { BookText, TrendingUp, TrendingDown, CalendarDays, FileText } from "lucide-react";
-import { accountingService } from "@/lib/services/accounting";
-import { Account, JournalEntry } from "@/lib/types/accounting";
+import { chartOfAccountsService, ledgerService } from "@/lib/services/accountingService";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -36,9 +35,9 @@ interface LedgerEntry {
 }
 
 export default function GeneralLedgerPage() {
-  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [accounts, setAccounts] = useState<any[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState<string>("");
-  const [ledgerEntries, setLedgerEntries] = useState<LedgerEntry[]>([]);
+  const [ledgerEntries, setLedgerEntries] = useState<any[]>([]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -53,7 +52,7 @@ export default function GeneralLedgerPage() {
   }, [selectedAccountId, startDate, endDate]);
 
   const loadAccounts = () => {
-    const allAccounts = accountingService.getAllAccounts();
+    const allAccounts = chartOfAccountsService.getAll();
     setAccounts(allAccounts);
     
     // Select first account by default
@@ -65,18 +64,18 @@ export default function GeneralLedgerPage() {
   const loadLedger = () => {
     if (!selectedAccountId) return;
 
-    const entries = accountingService.getGeneralLedger(selectedAccountId);
+    let entries = ledgerService.getByAccount(selectedAccountId);
     
     // Filter by date range if specified
-    let filtered = entries;
-    if (startDate) {
-      filtered = filtered.filter(e => new Date(e.date) >= new Date(startDate));
-    }
-    if (endDate) {
-      filtered = filtered.filter(e => new Date(e.date) <= new Date(endDate));
+    if (startDate && endDate) {
+      entries = ledgerService.getByDateRange(selectedAccountId, startDate, endDate);
+    } else if (startDate) {
+      entries = entries.filter(e => new Date(e.date) >= new Date(startDate));
+    } else if (endDate) {
+      entries = entries.filter(e => new Date(e.date) <= new Date(endDate));
     }
 
-    setLedgerEntries(filtered);
+    setLedgerEntries(entries);
   };
 
   const selectedAccount = accounts.find(a => a.id === selectedAccountId);

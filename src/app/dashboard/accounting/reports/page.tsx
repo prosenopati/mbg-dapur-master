@@ -19,15 +19,13 @@ import {
 } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Download, TrendingUp, TrendingDown, DollarSign, Calendar } from "lucide-react";
-import { accountingService } from "@/lib/services/accounting";
-import { BalanceSheet, IncomeStatement, CashFlowStatement } from "@/lib/types/accounting";
+import { accountingReportsService } from "@/lib/services/accountingService";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function FinancialReportsPage() {
-  const [balanceSheet, setBalanceSheet] = useState<BalanceSheet | null>(null);
-  const [incomeStatement, setIncomeStatement] = useState<IncomeStatement | null>(null);
-  const [cashFlow, setCashFlow] = useState<CashFlowStatement | null>(null);
+  const [balanceSheet, setBalanceSheet] = useState<any | null>(null);
+  const [incomeStatement, setIncomeStatement] = useState<any | null>(null);
   const [asOfDate, setAsOfDate] = useState(new Date().toISOString().split("T")[0]);
   const [startDate, setStartDate] = useState(
     new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split("T")[0]
@@ -39,13 +37,11 @@ export default function FinancialReportsPage() {
   }, [asOfDate, startDate, endDate]);
 
   const loadReports = () => {
-    const bs = accountingService.getBalanceSheet(new Date(asOfDate));
-    const is = accountingService.getIncomeStatement(new Date(startDate), new Date(endDate));
-    const cf = accountingService.getCashFlowStatement(new Date(startDate), new Date(endDate));
+    const bs = accountingReportsService.generateBalanceSheet(asOfDate);
+    const is = accountingReportsService.generateIncomeStatement(startDate, endDate);
     
     setBalanceSheet(bs);
     setIncomeStatement(is);
-    setCashFlow(cf);
   };
 
   const exportToCSV = (reportType: string, data: any) => {
@@ -53,23 +49,26 @@ export default function FinancialReportsPage() {
     const filename = `${reportType}-${asOfDate}.csv`;
 
     if (reportType === "balance-sheet" && balanceSheet) {
+      const allAssets = [...balanceSheet.currentAssets, ...balanceSheet.fixedAssets];
+      const allLiabilities = [...balanceSheet.currentLiabilities, ...balanceSheet.longTermLiabilities];
+      
       csvContent = [
         "NERACA (BALANCE SHEET)",
         `Per ${new Date(asOfDate).toLocaleDateString("id-ID")}`,
         "",
         "ASET",
-        ...balanceSheet.assets.map(a => `${a.name},Rp ${a.amount.toLocaleString("id-ID")}`),
+        ...allAssets.map((a: any) => `${a.accountName},Rp ${a.amount.toLocaleString("id-ID")}`),
         `Total Aset,Rp ${balanceSheet.totalAssets.toLocaleString("id-ID")}`,
         "",
         "KEWAJIBAN",
-        ...balanceSheet.liabilities.map(l => `${l.name},Rp ${l.amount.toLocaleString("id-ID")}`),
+        ...allLiabilities.map((l: any) => `${l.accountName},Rp ${l.amount.toLocaleString("id-ID")}`),
         `Total Kewajiban,Rp ${balanceSheet.totalLiabilities.toLocaleString("id-ID")}`,
         "",
         "EKUITAS",
-        ...balanceSheet.equity.map(e => `${e.name},Rp ${e.amount.toLocaleString("id-ID")}`),
+        ...balanceSheet.equity.map((e: any) => `${e.accountName},Rp ${e.amount.toLocaleString("id-ID")}`),
         `Total Ekuitas,Rp ${balanceSheet.totalEquity.toLocaleString("id-ID")}`,
         "",
-        `Total Kewajiban & Ekuitas,Rp ${balanceSheet.totalLiabilitiesAndEquity.toLocaleString("id-ID")}`,
+        `Total Kewajiban & Ekuitas,Rp ${(balanceSheet.totalLiabilities + balanceSheet.totalEquity).toLocaleString("id-ID")}`,
       ].join("\n");
     } else if (reportType === "income-statement" && incomeStatement) {
       csvContent = [
@@ -77,33 +76,20 @@ export default function FinancialReportsPage() {
         `Periode ${new Date(startDate).toLocaleDateString("id-ID")} - ${new Date(endDate).toLocaleDateString("id-ID")}`,
         "",
         "PENDAPATAN",
-        ...incomeStatement.revenue.map(r => `${r.name},Rp ${r.amount.toLocaleString("id-ID")}`),
+        ...incomeStatement.revenue.map((r: any) => `${r.accountName},Rp ${r.amount.toLocaleString("id-ID")}`),
         `Total Pendapatan,Rp ${incomeStatement.totalRevenue.toLocaleString("id-ID")}`,
         "",
-        "BEBAN",
-        ...incomeStatement.expenses.map(e => `${e.name},Rp ${e.amount.toLocaleString("id-ID")}`),
-        `Total Beban,Rp ${incomeStatement.totalExpenses.toLocaleString("id-ID")}`,
+        "HPP",
+        ...incomeStatement.cogs.map((c: any) => `${c.accountName},Rp ${c.amount.toLocaleString("id-ID")}`),
+        `Total HPP,Rp ${incomeStatement.totalCOGS.toLocaleString("id-ID")}`,
+        "",
+        `Laba Kotor,Rp ${incomeStatement.grossProfit.toLocaleString("id-ID")}`,
+        "",
+        "BEBAN OPERASIONAL",
+        ...incomeStatement.operatingExpenses.map((e: any) => `${e.accountName},Rp ${e.amount.toLocaleString("id-ID")}`),
+        `Total Beban,Rp ${incomeStatement.totalOperatingExpenses.toLocaleString("id-ID")}`,
         "",
         `Laba/Rugi Bersih,Rp ${incomeStatement.netIncome.toLocaleString("id-ID")}`,
-      ].join("\n");
-    } else if (reportType === "cash-flow" && cashFlow) {
-      csvContent = [
-        "LAPORAN ARUS KAS (CASH FLOW STATEMENT)",
-        `Periode ${new Date(startDate).toLocaleDateString("id-ID")} - ${new Date(endDate).toLocaleDateString("id-ID")}`,
-        "",
-        "AKTIVITAS OPERASIONAL",
-        ...cashFlow.operating.map(o => `${o.name},Rp ${o.amount.toLocaleString("id-ID")}`),
-        `Total Arus Kas Operasional,Rp ${cashFlow.netOperating.toLocaleString("id-ID")}`,
-        "",
-        "AKTIVITAS INVESTASI",
-        ...cashFlow.investing.map(i => `${i.name},Rp ${i.amount.toLocaleString("id-ID")}`),
-        `Total Arus Kas Investasi,Rp ${cashFlow.netInvesting.toLocaleString("id-ID")}`,
-        "",
-        "AKTIVITAS PENDANAAN",
-        ...cashFlow.financing.map(f => `${f.name},Rp ${f.amount.toLocaleString("id-ID")}`),
-        `Total Arus Kas Pendanaan,Rp ${cashFlow.netFinancing.toLocaleString("id-ID")}`,
-        "",
-        `Perubahan Kas Bersih,Rp ${cashFlow.netChange.toLocaleString("id-ID")}`,
       ].join("\n");
     }
 
@@ -228,9 +214,17 @@ export default function FinancialReportsPage() {
                             ASET
                           </TableCell>
                         </TableRow>
-                        {balanceSheet.assets.map((asset, index) => (
-                          <TableRow key={`asset-${index}`}>
-                            <TableCell className="pl-8">{asset.name}</TableCell>
+                        {balanceSheet.currentAssets.map((asset: any, index: number) => (
+                          <TableRow key={`current-asset-${index}`}>
+                            <TableCell className="pl-8">{asset.accountName}</TableCell>
+                            <TableCell className="text-right font-mono">
+                              Rp {asset.amount.toLocaleString("id-ID")}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {balanceSheet.fixedAssets.map((asset: any, index: number) => (
+                          <TableRow key={`fixed-asset-${index}`}>
+                            <TableCell className="pl-8">{asset.accountName}</TableCell>
                             <TableCell className="text-right font-mono">
                               Rp {asset.amount.toLocaleString("id-ID")}
                             </TableCell>
@@ -254,9 +248,17 @@ export default function FinancialReportsPage() {
                             KEWAJIBAN
                           </TableCell>
                         </TableRow>
-                        {balanceSheet.liabilities.map((liability, index) => (
-                          <TableRow key={`liability-${index}`}>
-                            <TableCell className="pl-8">{liability.name}</TableCell>
+                        {balanceSheet.currentLiabilities.map((liability: any, index: number) => (
+                          <TableRow key={`current-liability-${index}`}>
+                            <TableCell className="pl-8">{liability.accountName}</TableCell>
+                            <TableCell className="text-right font-mono">
+                              Rp {liability.amount.toLocaleString("id-ID")}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {balanceSheet.longTermLiabilities.map((liability: any, index: number) => (
+                          <TableRow key={`long-term-liability-${index}`}>
+                            <TableCell className="pl-8">{liability.accountName}</TableCell>
                             <TableCell className="text-right font-mono">
                               Rp {liability.amount.toLocaleString("id-ID")}
                             </TableCell>
@@ -280,9 +282,9 @@ export default function FinancialReportsPage() {
                             EKUITAS
                           </TableCell>
                         </TableRow>
-                        {balanceSheet.equity.map((eq, index) => (
+                        {balanceSheet.equity.map((eq: any, index: number) => (
                           <TableRow key={`equity-${index}`}>
-                            <TableCell className="pl-8">{eq.name}</TableCell>
+                            <TableCell className="pl-8">{eq.accountName}</TableCell>
                             <TableCell className="text-right font-mono">
                               Rp {eq.amount.toLocaleString("id-ID")}
                             </TableCell>
@@ -299,7 +301,7 @@ export default function FinancialReportsPage() {
                         <TableRow className="bg-primary/10 font-bold text-lg border-t-2">
                           <TableCell>TOTAL KEWAJIBAN & EKUITAS</TableCell>
                           <TableCell className="text-right font-mono text-primary">
-                            Rp {balanceSheet.totalLiabilitiesAndEquity.toLocaleString("id-ID")}
+                            Rp {(balanceSheet.totalLiabilities + balanceSheet.totalEquity).toLocaleString("id-ID")}
                           </TableCell>
                         </TableRow>
                       </TableBody>
@@ -317,7 +319,7 @@ export default function FinancialReportsPage() {
                       Rp {balanceSheet.totalLiabilities.toLocaleString("id-ID")} + 
                       Rp {balanceSheet.totalEquity.toLocaleString("id-ID")}
                     </p>
-                    {balanceSheet.totalAssets === balanceSheet.totalLiabilitiesAndEquity ? (
+                    {balanceSheet.totalAssets === (balanceSheet.totalLiabilities + balanceSheet.totalEquity) ? (
                       <Badge className="mt-2" variant="default">✓ Neraca Seimbang</Badge>
                     ) : (
                       <Badge className="mt-2" variant="destructive">⚠ Neraca Tidak Seimbang</Badge>
@@ -388,7 +390,7 @@ export default function FinancialReportsPage() {
                       Total Beban
                     </CardDescription>
                     <CardTitle className="text-2xl text-red-600 dark:text-red-400">
-                      Rp {incomeStatement.totalExpenses.toLocaleString("id-ID")}
+                      Rp {incomeStatement.totalOperatingExpenses.toLocaleString("id-ID")}
                     </CardTitle>
                   </CardHeader>
                 </Card>
@@ -431,9 +433,9 @@ export default function FinancialReportsPage() {
                             PENDAPATAN
                           </TableCell>
                         </TableRow>
-                        {incomeStatement.revenue.map((rev, index) => (
+                        {incomeStatement.revenue.map((rev: any, index: number) => (
                           <TableRow key={`revenue-${index}`}>
-                            <TableCell className="pl-8">{rev.name}</TableCell>
+                            <TableCell className="pl-8">{rev.accountName}</TableCell>
                             <TableCell className="text-right font-mono">
                               Rp {rev.amount.toLocaleString("id-ID")}
                             </TableCell>
@@ -451,15 +453,54 @@ export default function FinancialReportsPage() {
                           <TableCell colSpan={2} className="h-4"></TableCell>
                         </TableRow>
 
-                        {/* Expenses Section */}
-                        <TableRow className="bg-red-500/10">
-                          <TableCell colSpan={2} className="font-bold text-red-600 dark:text-red-400">
-                            BEBAN
+                        {/* COGS Section */}
+                        <TableRow className="bg-yellow-500/10">
+                          <TableCell colSpan={2} className="font-bold text-yellow-600 dark:text-yellow-400">
+                            HPP
                           </TableCell>
                         </TableRow>
-                        {incomeStatement.expenses.map((expense, index) => (
+                        {incomeStatement.cogs.map((cog: any, index: number) => (
+                          <TableRow key={`cog-${index}`}>
+                            <TableCell className="pl-8">{cog.accountName}</TableCell>
+                            <TableCell className="text-right font-mono">
+                              Rp {cog.amount.toLocaleString("id-ID")}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        <TableRow className="bg-muted/50 font-bold">
+                          <TableCell>Total HPP</TableCell>
+                          <TableCell className="text-right font-mono text-yellow-600 dark:text-yellow-400">
+                            Rp {incomeStatement.totalCOGS.toLocaleString("id-ID")}
+                          </TableCell>
+                        </TableRow>
+
+                        {/* Spacing */}
+                        <TableRow>
+                          <TableCell colSpan={2} className="h-4"></TableCell>
+                        </TableRow>
+
+                        {/* Gross Profit */}
+                        <TableRow className="bg-green-500/10 font-bold">
+                          <TableCell>Laba Kotor</TableCell>
+                          <TableCell className="text-right font-mono text-green-600 dark:text-green-400">
+                            Rp {incomeStatement.grossProfit.toLocaleString("id-ID")}
+                          </TableCell>
+                        </TableRow>
+
+                        {/* Spacing */}
+                        <TableRow>
+                          <TableCell colSpan={2} className="h-4"></TableCell>
+                        </TableRow>
+
+                        {/* Operating Expenses Section */}
+                        <TableRow className="bg-red-500/10">
+                          <TableCell colSpan={2} className="font-bold text-red-600 dark:text-red-400">
+                            BEBAN OPERASIONAL
+                          </TableCell>
+                        </TableRow>
+                        {incomeStatement.operatingExpenses.map((expense: any, index: number) => (
                           <TableRow key={`expense-${index}`}>
-                            <TableCell className="pl-8">{expense.name}</TableCell>
+                            <TableCell className="pl-8">{expense.accountName}</TableCell>
                             <TableCell className="text-right font-mono">
                               Rp {expense.amount.toLocaleString("id-ID")}
                             </TableCell>
@@ -468,7 +509,7 @@ export default function FinancialReportsPage() {
                         <TableRow className="bg-muted/50 font-bold">
                           <TableCell>Total Beban</TableCell>
                           <TableCell className="text-right font-mono text-red-600 dark:text-red-400">
-                            Rp {incomeStatement.totalExpenses.toLocaleString("id-ID")}
+                            Rp {incomeStatement.totalOperatingExpenses.toLocaleString("id-ID")}
                           </TableCell>
                         </TableRow>
 
@@ -614,7 +655,7 @@ export default function FinancialReportsPage() {
                             AKTIVITAS OPERASIONAL
                           </TableCell>
                         </TableRow>
-                        {cashFlow.operating.map((op, index) => (
+                        {cashFlow.operating.map((op: any, index: number) => (
                           <TableRow key={`operating-${index}`}>
                             <TableCell className="pl-8">{op.name}</TableCell>
                             <TableCell className={`text-right font-mono ${op.amount >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
@@ -640,7 +681,7 @@ export default function FinancialReportsPage() {
                             AKTIVITAS INVESTASI
                           </TableCell>
                         </TableRow>
-                        {cashFlow.investing.map((inv, index) => (
+                        {cashFlow.investing.map((inv: any, index: number) => (
                           <TableRow key={`investing-${index}`}>
                             <TableCell className="pl-8">{inv.name}</TableCell>
                             <TableCell className={`text-right font-mono ${inv.amount >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
@@ -666,7 +707,7 @@ export default function FinancialReportsPage() {
                             AKTIVITAS PENDANAAN
                           </TableCell>
                         </TableRow>
-                        {cashFlow.financing.map((fin, index) => (
+                        {cashFlow.financing.map((fin: any, index: number) => (
                           <TableRow key={`financing-${index}`}>
                             <TableCell className="pl-8">{fin.name}</TableCell>
                             <TableCell className={`text-right font-mono ${fin.amount >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>

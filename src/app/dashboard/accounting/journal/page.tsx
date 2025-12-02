@@ -32,12 +32,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Plus, Filter, Eye, Trash2, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
-import { accountingService } from "@/lib/services/accounting";
-import { JournalEntry, JournalEntryLine, Account } from "@/lib/types/accounting";
+import { journalEntryService, chartOfAccountsService } from "@/lib/services/accountingService";
+import { JournalEntry, JournalEntryLine } from "@/lib/types/accounting";
 
 export default function JournalEntriesPage() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
-  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [accounts, setAccounts] = useState<any[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
@@ -58,8 +58,8 @@ export default function JournalEntriesPage() {
   }, []);
 
   const loadData = () => {
-    const allEntries = accountingService.getAllJournalEntries();
-    const allAccounts = accountingService.getAllAccounts();
+    const allEntries = journalEntryService.getAll();
+    const allAccounts = chartOfAccountsService.getAll();
     setEntries(allEntries);
     setAccounts(allAccounts);
   };
@@ -132,17 +132,20 @@ export default function JournalEntriesPage() {
       return;
     }
 
-    const newEntry: Omit<JournalEntry, "id" | "createdAt"> = {
-      date: new Date(date),
+    const newEntry: Omit<JournalEntry, "id" | "entryNumber" | "createdAt" | "updatedAt"> = {
+      date: new Date(date).toISOString(),
+      type: "manual",
+      status: "draft",
       description,
       reference: reference || undefined,
-      type: "manual",
-      lines: lines as JournalEntryLine[],
+      lines: lines.map((line, index) => ({ ...line, id: `line-${index}` })) as JournalEntryLine[],
       totalDebit,
       totalCredit,
+      createdBy: "User",
     };
 
-    accountingService.createJournalEntry(newEntry);
+    const createdEntry = journalEntryService.createEntry(newEntry);
+    journalEntryService.postEntry(createdEntry.id, "User");
     
     toast.success("Jurnal berhasil ditambahkan", {
       description: `${description} - Rp ${totalDebit.toLocaleString("id-ID")}`,
@@ -162,7 +165,7 @@ export default function JournalEntriesPage() {
 
   const handleDelete = (id: string) => {
     if (confirm("Yakin ingin menghapus jurnal ini?")) {
-      accountingService.deleteJournalEntry(id);
+      journalEntryService.delete(id);
       toast.success("Jurnal berhasil dihapus");
       loadData();
     }

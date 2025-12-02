@@ -13,13 +13,12 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Scale, Download, FileSpreadsheet, AlertCircle, CheckCircle2 } from "lucide-react";
-import { accountingService } from "@/lib/services/accounting";
-import { TrialBalanceItem } from "@/lib/types/accounting";
+import { accountingReportsService } from "@/lib/services/accountingService";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function TrialBalancePage() {
-  const [trialBalance, setTrialBalance] = useState<TrialBalanceItem[]>([]);
+  const [trialBalance, setTrialBalance] = useState<any>(null);
   const [asOfDate, setAsOfDate] = useState(new Date().toISOString().split("T")[0]);
 
   useEffect(() => {
@@ -27,39 +26,33 @@ export default function TrialBalancePage() {
   }, [asOfDate]);
 
   const loadTrialBalance = () => {
-    const date = asOfDate ? new Date(asOfDate) : new Date();
-    const data = accountingService.getTrialBalance(date);
+    const data = accountingReportsService.generateTrialBalance(asOfDate);
     setTrialBalance(data);
   };
 
-  const calculateTotals = () => {
-    const totalDebit = trialBalance.reduce((sum, item) => sum + item.debit, 0);
-    const totalCredit = trialBalance.reduce((sum, item) => sum + item.credit, 0);
-    const difference = Math.abs(totalDebit - totalCredit);
-    const isBalanced = totalDebit === totalCredit;
-    
-    return { totalDebit, totalCredit, difference, isBalanced };
-  };
+  if (!trialBalance) {
+    return <div>Loading...</div>;
+  }
 
-  const { totalDebit, totalCredit, difference, isBalanced } = calculateTotals();
+  const { totalDebit, totalCredit, isBalanced, lines } = trialBalance;
+  const difference = Math.abs(totalDebit - totalCredit);
 
   const handleExport = () => {
     // Simple CSV export
-    const headers = ["Kode Akun", "Nama Akun", "Tipe", "Kategori", "Debit", "Kredit"];
-    const rows = trialBalance.map(item => [
+    const headers = ["Kode Akun", "Nama Akun", "Tipe", "Debit", "Kredit"];
+    const rows = lines.map((item: any) => [
       item.accountCode,
       item.accountName,
       item.accountType,
-      item.accountCategory,
       item.debit.toString(),
       item.credit.toString()
     ]);
     
     const csvContent = [
       headers.join(","),
-      ...rows.map(row => row.join(",")),
+      ...rows.map((row: any) => row.join(",")),
       "",
-      "TOTAL," + ",,," + totalDebit.toString() + "," + totalCredit.toString()
+      "TOTAL,,,," + totalDebit.toString() + "," + totalCredit.toString()
     ].join("\n");
     
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -74,15 +67,23 @@ export default function TrialBalancePage() {
   };
 
   // Group by account type for better organization
-  const groupedBalance = trialBalance.reduce((acc, item) => {
+  const groupedBalance = lines.reduce((acc: any, item: any) => {
     if (!acc[item.accountType]) {
       acc[item.accountType] = [];
     }
     acc[item.accountType].push(item);
     return acc;
-  }, {} as Record<string, TrialBalanceItem[]>);
+  }, {} as Record<string, any[]>);
 
-  const accountTypeOrder = ["Aset", "Kewajiban", "Modal", "Pendapatan", "Beban"];
+  const accountTypeOrder = ["asset", "liability", "equity", "revenue", "expense", "cogs"];
+  const accountTypeLabels: Record<string, string> = {
+    asset: "Aset",
+    liability: "Kewajiban",
+    equity: "Modal",
+    revenue: "Pendapatan",
+    expense: "Beban",
+    cogs: "HPP"
+  };
   const sortedTypes = Object.keys(groupedBalance).sort((a, b) => 
     accountTypeOrder.indexOf(a) - accountTypeOrder.indexOf(b)
   );
@@ -195,7 +196,7 @@ export default function TrialBalancePage() {
               </CardDescription>
             </div>
             <Badge variant={isBalanced ? "default" : "destructive"} className="text-sm">
-              {trialBalance.length} Akun
+              {lines.length} Akun
             </Badge>
           </div>
         </CardHeader>
@@ -213,7 +214,7 @@ export default function TrialBalancePage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {trialBalance.length === 0 ? (
+                {lines.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                       <FileSpreadsheet className="h-12 w-12 mx-auto mb-2 opacity-50" />
@@ -228,7 +229,7 @@ export default function TrialBalancePage() {
                         {/* Type Header */}
                         <TableRow className="bg-muted/30">
                           <TableCell colSpan={6} className="font-bold text-primary">
-                            {type}
+                            {accountTypeLabels[type as keyof typeof accountTypeLabels]}
                           </TableCell>
                         </TableRow>
                         
@@ -277,7 +278,7 @@ export default function TrialBalancePage() {
                         {/* Subtotal for this type */}
                         <TableRow className="bg-muted/20 font-semibold">
                           <TableCell colSpan={4} className="text-right">
-                            Subtotal {type}
+                            Subtotal {accountTypeLabels[type as keyof typeof accountTypeLabels]}
                           </TableCell>
                           <TableCell className="text-right font-mono text-green-600 dark:text-green-400">
                             Rp {groupedBalance[type].reduce((sum, item) => sum + item.debit, 0).toLocaleString("id-ID")}
@@ -320,7 +321,7 @@ export default function TrialBalancePage() {
           </div>
 
           {/* Info Note */}
-          {trialBalance.length > 0 && (
+          {lines.length > 0 && (
             <div className="mt-4 p-4 bg-muted/50 rounded-lg space-y-2 text-sm">
               <p className="font-semibold flex items-center gap-2">
                 <Scale className="h-4 w-4" />
