@@ -30,7 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Plus, Filter, Eye, Trash2, CalendarDays } from "lucide-react";
+import { BookOpen, Plus, Filter, Eye, Trash2, CalendarDays, Save, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { journalEntryService, chartOfAccountsService } from "@/lib/services/accountingService";
 import { JournalEntry, JournalEntryLine } from "@/lib/types/accounting";
@@ -215,14 +215,17 @@ export default function JournalEntriesPage() {
 
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button size="lg" className="shadow-lg">
               <Plus className="mr-2 h-4 w-4" />
               Tambah Jurnal
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Tambah Jurnal Manual</DialogTitle>
+              <DialogTitle className="flex items-center gap-2 text-xl">
+                <BookOpen className="h-5 w-5 text-primary" />
+                Tambah Jurnal Manual
+              </DialogTitle>
               <DialogDescription>
                 Masukkan entri jurnal dengan sistem double-entry bookkeeping
               </DialogDescription>
@@ -230,7 +233,7 @@ export default function JournalEntriesPage() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Header Information */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg border">
                 <div className="space-y-2">
                   <Label htmlFor="date">Tanggal *</Label>
                   <Input
@@ -277,7 +280,7 @@ export default function JournalEntriesPage() {
                 <div className="border rounded-lg overflow-hidden">
                   <Table>
                     <TableHeader>
-                      <TableRow>
+                      <TableRow className="bg-muted/50">
                         <TableHead className="w-[250px]">Akun</TableHead>
                         <TableHead className="w-[200px]">Keterangan</TableHead>
                         <TableHead className="text-right w-[130px]">Debit</TableHead>
@@ -353,38 +356,41 @@ export default function JournalEntriesPage() {
                 </div>
 
                 {/* Totals */}
-                <div className="bg-muted/50 p-4 rounded-lg">
+                <div className={`p-4 rounded-lg border-2 ${isBalanced ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900" : "bg-muted/50 border-border"}`}>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="flex justify-between">
                       <span className="font-medium">Total Debit:</span>
-                      <span className="font-bold">Rp {totalDebit.toLocaleString("id-ID")}</span>
+                      <span className="font-bold font-mono">Rp {totalDebit.toLocaleString("id-ID")}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">Total Kredit:</span>
-                      <span className="font-bold">Rp {totalCredit.toLocaleString("id-ID")}</span>
+                      <span className="font-bold font-mono">Rp {totalCredit.toLocaleString("id-ID")}</span>
                     </div>
                   </div>
                   
                   {!isBalanced && totalDebit > 0 && totalCredit > 0 && (
-                    <div className="mt-3 text-sm text-destructive flex items-center gap-2">
-                      <span className="font-medium">⚠️ Tidak Seimbang!</span>
+                    <div className="mt-3 p-2 bg-destructive/10 border border-destructive/20 rounded text-sm text-destructive flex items-center gap-2">
+                      <XCircle className="h-4 w-4" />
+                      <span className="font-medium">Tidak Seimbang!</span>
                       <span>Selisih: Rp {Math.abs(totalDebit - totalCredit).toLocaleString("id-ID")}</span>
                     </div>
                   )}
                   
                   {isBalanced && (
-                    <div className="mt-3 text-sm text-green-600 dark:text-green-400 flex items-center gap-2">
-                      <span className="font-medium">✓ Seimbang</span>
+                    <div className="mt-3 text-sm text-green-600 dark:text-green-400 flex items-center gap-2 font-medium">
+                      <Save className="h-4 w-4" />
+                      <span>✓ Seimbang - Siap disimpan</span>
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2 pt-4 border-t">
                 <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Batal
                 </Button>
-                <Button type="submit" disabled={!isBalanced}>
+                <Button type="submit" disabled={!isBalanced} size="lg">
+                  <Save className="mr-2 h-4 w-4" />
                   Simpan Jurnal
                 </Button>
               </div>
@@ -395,35 +401,35 @@ export default function JournalEntriesPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="shadow-md hover:shadow-lg transition-shadow border-l-4 border-l-primary">
           <CardHeader className="pb-3">
-            <CardDescription>Total Jurnal</CardDescription>
-            <CardTitle className="text-2xl">{entries.length}</CardTitle>
+            <CardDescription className="text-xs">Total Jurnal</CardDescription>
+            <CardTitle className="text-3xl">{entries.length}</CardTitle>
           </CardHeader>
         </Card>
 
-        <Card>
+        <Card className="shadow-md hover:shadow-lg transition-shadow border-l-4 border-l-blue-500">
           <CardHeader className="pb-3">
-            <CardDescription>Jurnal Manual</CardDescription>
-            <CardTitle className="text-2xl">
+            <CardDescription className="text-xs">Jurnal Manual</CardDescription>
+            <CardTitle className="text-3xl text-blue-600 dark:text-blue-400">
               {entries.filter((e) => e.type === "manual").length}
             </CardTitle>
           </CardHeader>
         </Card>
 
-        <Card>
+        <Card className="shadow-md hover:shadow-lg transition-shadow border-l-4 border-l-purple-500">
           <CardHeader className="pb-3">
-            <CardDescription>Jurnal Otomatis</CardDescription>
-            <CardTitle className="text-2xl">
+            <CardDescription className="text-xs">Jurnal Otomatis</CardDescription>
+            <CardTitle className="text-3xl text-purple-600 dark:text-purple-400">
               {entries.filter((e) => e.type === "auto").length}
             </CardTitle>
           </CardHeader>
         </Card>
 
-        <Card>
+        <Card className="shadow-md hover:shadow-lg transition-shadow border-l-4 border-l-green-500">
           <CardHeader className="pb-3">
-            <CardDescription>Bulan Ini</CardDescription>
-            <CardTitle className="text-2xl">
+            <CardDescription className="text-xs">Bulan Ini</CardDescription>
+            <CardTitle className="text-3xl text-green-600 dark:text-green-400">
               {entries.filter((e) => {
                 const entryDate = new Date(e.date);
                 const now = new Date();
@@ -435,14 +441,14 @@ export default function JournalEntriesPage() {
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardHeader>
+      <Card className="shadow-md">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
           <div className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
+            <Filter className="h-5 w-5 text-primary" />
             <CardTitle>Filter</CardTitle>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <Select value={filterType} onValueChange={setFilterType}>
               <SelectTrigger className="w-full sm:w-[200px]">
@@ -471,18 +477,21 @@ export default function JournalEntriesPage() {
       </Card>
 
       {/* Journal Entries Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Daftar Jurnal</CardTitle>
+      <Card className="shadow-md">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
+          <div className="flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-primary" />
+            <CardTitle>Daftar Jurnal</CardTitle>
+          </div>
           <CardDescription>
             Menampilkan {filteredEntries.length} dari {entries.length} jurnal
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="border rounded-lg overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="bg-muted/50">
                   <TableHead>Tanggal</TableHead>
                   <TableHead>Deskripsi</TableHead>
                   <TableHead>Referensi</TableHead>
@@ -495,14 +504,15 @@ export default function JournalEntriesPage() {
               <TableBody>
                 {filteredEntries.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      <BookOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                      <p>Belum ada jurnal</p>
+                    <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                      <BookOpen className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                      <p className="font-medium">Belum ada jurnal</p>
+                      <p className="text-sm mt-1">Klik "Tambah Jurnal" untuk membuat entri baru</p>
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredEntries.map((entry) => (
-                    <TableRow key={entry.id}>
+                    <TableRow key={entry.id} className="hover:bg-muted/30 transition-colors">
                       <TableCell className="whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <CalendarDays className="h-4 w-4 text-muted-foreground" />
@@ -516,7 +526,7 @@ export default function JournalEntriesPage() {
                       <TableCell className="font-medium">{entry.description}</TableCell>
                       <TableCell>
                         {entry.reference && (
-                          <Badge variant="outline">{entry.reference}</Badge>
+                          <Badge variant="outline" className="font-mono text-xs">{entry.reference}</Badge>
                         )}
                       </TableCell>
                       <TableCell>
@@ -563,7 +573,10 @@ export default function JournalEntriesPage() {
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Detail Jurnal</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-primary" />
+              Detail Jurnal
+            </DialogTitle>
             <DialogDescription>
               {selectedEntry && new Date(selectedEntry.date).toLocaleDateString("id-ID", {
                 day: "2-digit",
@@ -575,7 +588,7 @@ export default function JournalEntriesPage() {
 
           {selectedEntry && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg text-sm">
                 <div>
                   <span className="text-muted-foreground">Deskripsi:</span>
                   <p className="font-medium">{selectedEntry.description}</p>
@@ -601,7 +614,7 @@ export default function JournalEntriesPage() {
               <div className="border rounded-lg overflow-hidden">
                 <Table>
                   <TableHeader>
-                    <TableRow>
+                    <TableRow className="bg-muted/50">
                       <TableHead>Akun</TableHead>
                       <TableHead>Keterangan</TableHead>
                       <TableHead className="text-right">Debit</TableHead>
@@ -614,7 +627,7 @@ export default function JournalEntriesPage() {
                         <TableCell>
                           <div>
                             <div className="font-medium">{line.accountName}</div>
-                            <div className="text-xs text-muted-foreground">{line.accountCode}</div>
+                            <div className="text-xs text-muted-foreground font-mono">{line.accountCode}</div>
                           </div>
                         </TableCell>
                         <TableCell className="text-sm">{line.description}</TableCell>
@@ -626,7 +639,7 @@ export default function JournalEntriesPage() {
                         </TableCell>
                       </TableRow>
                     ))}
-                    <TableRow className="bg-muted/50 font-bold">
+                    <TableRow className="bg-muted/50 font-bold border-t-2">
                       <TableCell colSpan={2}>TOTAL</TableCell>
                       <TableCell className="text-right font-mono">
                         Rp {selectedEntry.totalDebit.toLocaleString("id-ID")}

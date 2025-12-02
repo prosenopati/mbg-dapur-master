@@ -12,10 +12,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Scale, Download, FileSpreadsheet, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Scale, Download, FileSpreadsheet, AlertCircle, CheckCircle2, Calendar } from "lucide-react";
 import { accountingReportsService } from "@/lib/services/accountingService";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import React from "react";
 
 export default function TrialBalancePage() {
   const [trialBalance, setTrialBalance] = useState<any>(null);
@@ -102,19 +103,22 @@ export default function TrialBalancePage() {
           </p>
         </div>
 
-        <Button onClick={handleExport} variant="outline">
+        <Button onClick={handleExport} variant="outline" size="lg" className="shadow-md">
           <Download className="mr-2 h-4 w-4" />
           Export CSV
         </Button>
       </div>
 
       {/* Date Filter */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filter Periode</CardTitle>
+      <Card className="shadow-md">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-primary" />
+            <CardTitle>Filter Periode</CardTitle>
+          </div>
           <CardDescription>Pilih tanggal untuk melihat neraca saldo</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row gap-4 items-end">
             <div className="space-y-2 flex-1 max-w-xs">
               <Label htmlFor="asOfDate">Per Tanggal</Label>
@@ -134,36 +138,36 @@ export default function TrialBalancePage() {
 
       {/* Balance Status */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="shadow-md hover:shadow-lg transition-shadow border-l-4 border-l-green-500">
           <CardHeader className="pb-3">
-            <CardDescription>Total Debit</CardDescription>
-            <CardTitle className="text-2xl text-green-600 dark:text-green-400">
+            <CardDescription className="text-xs">Total Debit</CardDescription>
+            <CardTitle className="text-2xl text-green-600 dark:text-green-400 font-mono">
               Rp {totalDebit.toLocaleString("id-ID")}
             </CardTitle>
           </CardHeader>
         </Card>
 
-        <Card>
+        <Card className="shadow-md hover:shadow-lg transition-shadow border-l-4 border-l-red-500">
           <CardHeader className="pb-3">
-            <CardDescription>Total Kredit</CardDescription>
-            <CardTitle className="text-2xl text-red-600 dark:text-red-400">
+            <CardDescription className="text-xs">Total Kredit</CardDescription>
+            <CardTitle className="text-2xl text-red-600 dark:text-red-400 font-mono">
               Rp {totalCredit.toLocaleString("id-ID")}
             </CardTitle>
           </CardHeader>
         </Card>
 
-        <Card>
+        <Card className="shadow-md hover:shadow-lg transition-shadow border-l-4 border-l-orange-500">
           <CardHeader className="pb-3">
-            <CardDescription>Selisih</CardDescription>
-            <CardTitle className={`text-2xl ${isBalanced ? "text-green-600 dark:text-green-400" : "text-destructive"}`}>
+            <CardDescription className="text-xs">Selisih</CardDescription>
+            <CardTitle className={`text-2xl font-mono ${isBalanced ? "text-green-600 dark:text-green-400" : "text-destructive"}`}>
               Rp {difference.toLocaleString("id-ID")}
             </CardTitle>
           </CardHeader>
         </Card>
 
-        <Card className={isBalanced ? "border-green-500/50 bg-green-500/5" : "border-destructive/50 bg-destructive/5"}>
+        <Card className={`shadow-md hover:shadow-lg transition-shadow border-l-4 ${isBalanced ? "border-l-green-500 bg-green-50 dark:bg-green-950/20" : "border-l-destructive bg-destructive/5"}`}>
           <CardHeader className="pb-3">
-            <CardDescription>Status</CardDescription>
+            <CardDescription className="text-xs">Status</CardDescription>
             <CardTitle className="text-xl flex items-center gap-2">
               {isBalanced ? (
                 <>
@@ -182,12 +186,15 @@ export default function TrialBalancePage() {
       </div>
 
       {/* Trial Balance Table */}
-      <Card>
-        <CardHeader>
+      <Card className="shadow-md">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <CardTitle>Neraca Saldo</CardTitle>
-              <CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <Scale className="h-5 w-5 text-primary" />
+                Neraca Saldo
+              </CardTitle>
+              <CardDescription className="mt-1">
                 Per {new Date(asOfDate).toLocaleDateString("id-ID", {
                   day: "numeric",
                   month: "long",
@@ -195,16 +202,16 @@ export default function TrialBalancePage() {
                 })}
               </CardDescription>
             </div>
-            <Badge variant={isBalanced ? "default" : "destructive"} className="text-sm">
+            <Badge variant={isBalanced ? "default" : "destructive"} className="text-sm px-3 py-1">
               {lines.length} Akun
             </Badge>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="border rounded-lg overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="bg-muted/50">
                   <TableHead className="w-[100px]">Kode</TableHead>
                   <TableHead>Nama Akun</TableHead>
                   <TableHead className="w-[120px]">Tipe</TableHead>
@@ -216,9 +223,9 @@ export default function TrialBalancePage() {
               <TableBody>
                 {lines.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      <FileSpreadsheet className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                      <p>Belum ada data neraca saldo</p>
+                    <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                      <FileSpreadsheet className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                      <p className="font-medium">Belum ada data neraca saldo</p>
                       <p className="text-sm mt-1">Transaksi akan otomatis tercatat di neraca saldo</p>
                     </TableCell>
                   </TableRow>
@@ -227,8 +234,8 @@ export default function TrialBalancePage() {
                     {sortedTypes.map((type) => (
                       <React.Fragment key={type}>
                         {/* Type Header */}
-                        <TableRow className="bg-muted/30">
-                          <TableCell colSpan={6} className="font-bold text-primary">
+                        <TableRow className="bg-primary/5 border-t-2">
+                          <TableCell colSpan={6} className="font-bold text-primary py-3">
                             {accountTypeLabels[type as keyof typeof accountTypeLabels]}
                           </TableCell>
                         </TableRow>
@@ -237,7 +244,7 @@ export default function TrialBalancePage() {
                         {groupedBalance[type]
                           .sort((a, b) => a.accountCode.localeCompare(b.accountCode))
                           .map((item) => (
-                            <TableRow key={item.accountId}>
+                            <TableRow key={item.accountId} className="hover:bg-muted/30 transition-colors">
                               <TableCell className="font-mono text-sm">
                                 {item.accountCode}
                               </TableCell>
@@ -256,7 +263,7 @@ export default function TrialBalancePage() {
                               </TableCell>
                               <TableCell className="text-right font-mono">
                                 {item.debit > 0 ? (
-                                  <span className="text-green-600 dark:text-green-400">
+                                  <span className="text-green-600 dark:text-green-400 font-semibold">
                                     Rp {item.debit.toLocaleString("id-ID")}
                                   </span>
                                 ) : (
@@ -265,7 +272,7 @@ export default function TrialBalancePage() {
                               </TableCell>
                               <TableCell className="text-right font-mono">
                                 {item.credit > 0 ? (
-                                  <span className="text-red-600 dark:text-red-400">
+                                  <span className="text-red-600 dark:text-red-400 font-semibold">
                                     Rp {item.credit.toLocaleString("id-ID")}
                                   </span>
                                 ) : (
@@ -322,7 +329,7 @@ export default function TrialBalancePage() {
 
           {/* Info Note */}
           {lines.length > 0 && (
-            <div className="mt-4 p-4 bg-muted/50 rounded-lg space-y-2 text-sm">
+            <div className="mt-4 p-4 bg-muted/30 rounded-lg space-y-2 text-sm">
               <p className="font-semibold flex items-center gap-2">
                 <Scale className="h-4 w-4" />
                 Catatan Neraca Saldo:
