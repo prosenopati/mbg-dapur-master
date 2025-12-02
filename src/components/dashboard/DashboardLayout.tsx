@@ -191,8 +191,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [userEmail, setUserEmail] = useState("");
   const [filteredNavGroups, setFilteredNavGroups] = useState(navGroups);
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
-  const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
-  const subMenuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -204,32 +202,18 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     setFilteredNavGroups(filterNavigationByRole(navGroups));
   }, []);
 
-  // Find which group contains the current active path
+  // Find which group contains the current active path - submenu always visible
   useEffect(() => {
     const currentGroup = filteredNavGroups.find((group) =>
       group.items.some((item) => pathname === item.href)
     );
     if (currentGroup) {
       setActiveGroup(currentGroup.title);
+    } else if (filteredNavGroups.length > 0) {
+      // Default to first group if no match
+      setActiveGroup(filteredNavGroups[0].title);
     }
   }, [pathname, filteredNavGroups]);
-
-  // Click outside handler to close submenu
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (subMenuRef.current && !subMenuRef.current.contains(event.target as Node)) {
-        setIsSubMenuOpen(false);
-        setActiveGroup(null);
-      }
-    }
-
-    if (isSubMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [isSubMenuOpen]);
 
   const handleLogout = () => {
     try {
@@ -287,17 +271,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     return email.slice(0, 2).toUpperCase();
   };
 
-  const handleTabHover = (groupTitle: string) => {
+  const handleTabClick = (groupTitle: string) => {
     setActiveGroup(groupTitle);
-    setIsSubMenuOpen(true);
-  };
-
-  const handleSubMenuLinkClick = () => {
-    // Keep menu open briefly to allow navigation
-    setTimeout(() => {
-      setIsSubMenuOpen(false);
-      setActiveGroup(null);
-    }, 100);
   };
 
   const RoleIcon = getRoleIcon(userRole);
@@ -319,15 +294,15 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </Link>
 
           {/* Desktop Navigation - Tab Style */}
-          <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center" ref={subMenuRef}>
+          <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
             {filteredNavGroups.map((group) => {
               const hasActiveItem = group.items.some(item => pathname === item.href);
-              const isExpanded = activeGroup === group.title && isSubMenuOpen;
+              const isExpanded = activeGroup === group.title;
               
               return (
                 <button
                   key={group.title}
-                  onMouseEnter={() => handleTabHover(group.title)}
+                  onClick={() => handleTabClick(group.title)}
                   className={cn(
                     "relative px-4 py-2 text-sm font-medium rounded-t-lg transition-all duration-200",
                     hasActiveItem 
@@ -340,41 +315,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 </button>
               );
             })}
-
-            {/* Horizontal Sub Menu - Positioned Below Tabs */}
-            {activeGroup && isSubMenuOpen && (
-              <div 
-                className="absolute top-full left-0 right-0 border-t border-border bg-accent/50 shadow-lg"
-              >
-                <div className="flex items-center justify-center py-2">
-                  <div className="flex items-center gap-2">
-                    {filteredNavGroups
-                      .find((group) => group.title === activeGroup)
-                      ?.items.map((item) => {
-                        const Icon = item.icon;
-                        const isActive = pathname === item.href;
-
-                        return (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            onClick={handleSubMenuLinkClick}
-                            className={cn(
-                              "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
-                              isActive
-                                ? "bg-primary text-primary-foreground shadow-md"
-                                : "text-foreground hover:bg-background hover:shadow-sm"
-                            )}
-                          >
-                            <Icon className="h-4 w-4" />
-                            <span>{item.title}</span>
-                          </Link>
-                        );
-                      })}
-                  </div>
-                </div>
-              </div>
-            )}
           </nav>
 
           {/* Right Side: Role Badge & User Menu */}
@@ -446,6 +386,38 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             )}
           </Button>
         </div>
+
+        {/* Horizontal Sub Menu - Always Visible Below Tabs */}
+        {activeGroup && (
+          <div className="hidden lg:block border-t border-border bg-accent/50 shadow-sm">
+            <div className="flex items-center justify-center py-2">
+              <div className="flex items-center gap-2">
+                {filteredNavGroups
+                  .find((group) => group.title === activeGroup)
+                  ?.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = pathname === item.href;
+
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                          isActive
+                            ? "bg-primary text-primary-foreground shadow-md"
+                            : "text-foreground hover:bg-background hover:shadow-sm"
+                        )}
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    );
+                  })}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
