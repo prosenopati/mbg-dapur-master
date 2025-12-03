@@ -6,8 +6,8 @@ async function main() {
     
     const sampleDapurs = [
         {
-            name: 'Dapur Central Jakarta',
-            location: 'Jl. Sudirman No. 123, Jakarta Pusat',
+            name: 'Dapur MBG Kendal Kota',
+            location: 'Jl. Soekarno Hatta No. 15, Kendal Kota, Kab. Kendal',
             capacity: 500,
             managerName: 'Budi Santoso',
             contact: '+62 812-3456-7890',
@@ -16,8 +16,8 @@ async function main() {
             updatedAt: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(),
         },
         {
-            name: 'Dapur South Jakarta',
-            location: 'Jl. TB Simatupang No. 45, Jakarta Selatan',
+            name: 'Dapur MBG Weleri',
+            location: 'Jl. Raya Weleri No. 88, Weleri, Kab. Kendal',
             capacity: 450,
             managerName: 'Siti Nurhaliza',
             contact: '+62 813-4567-8901',
@@ -26,8 +26,8 @@ async function main() {
             updatedAt: new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000).toISOString(),
         },
         {
-            name: 'Dapur West Jakarta',
-            location: 'Jl. Puri Indah No. 88, Jakarta Barat',
+            name: 'Dapur MBG Kaliwungu',
+            location: 'Jl. Pemuda No. 45, Kaliwungu, Kab. Kendal',
             capacity: 400,
             managerName: 'Ahmad Hidayat',
             contact: '+62 814-5678-9012',
@@ -36,8 +36,8 @@ async function main() {
             updatedAt: new Date(now.getTime() - 25 * 24 * 60 * 60 * 1000).toISOString(),
         },
         {
-            name: 'Dapur East Jakarta',
-            location: 'Jl. Bekasi Raya No. 234, Jakarta Timur',
+            name: 'Dapur MBG Patebon',
+            location: 'Jl. Pantura KM 15, Patebon, Kab. Kendal',
             capacity: 350,
             managerName: 'Dewi Lestari',
             contact: '+62 815-6789-0123',
@@ -46,15 +46,15 @@ async function main() {
             updatedAt: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000).toISOString(),
         },
         {
-            name: 'Dapur North Jakarta',
-            location: 'Jl. Ancol No. 56, Jakarta Utara',
+            name: 'Dapur MBG Cepiring',
+            location: 'Jl. Raya Cepiring No. 120, Cepiring, Kab. Kendal',
             capacity: 380,
             managerName: 'Rudi Wijaya',
             contact: '+62 816-7890-1234',
             status: 'active',
             createdAt: new Date(now.getTime() - 18 * 24 * 60 * 60 * 1000).toISOString(),
             updatedAt: new Date(now.getTime() - 18 * 24 * 60 * 60 * 1000).toISOString(),
-        },
+        }
     ];
 
     await db.insert(dapurs).values(sampleDapurs);

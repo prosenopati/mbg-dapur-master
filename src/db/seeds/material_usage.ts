@@ -2,25 +2,25 @@ import { db } from '@/db';
 import { materialUsage } from '@/db/schema';
 
 async function main() {
-    const sampleMaterialUsage = [];
-    
-    // Calculate dates for last 7 days
-    const today = new Date();
-    const dates = [];
-    for (let i = 7; i >= 1; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        dates.push(date);
-    }
+    const materials = [
+        { name: 'Beras Premium', unit: 'kg' },
+        { name: 'Ayam Potong', unit: 'kg' },
+        { name: 'Sayuran Segar', unit: 'kg' }
+    ];
 
-    // Kitchen 1 - HIGH PERFORMER (efficient, minimal wastage)
-    for (const date of dates) {
+    const sampleMaterialUsage = [];
+    const today = new Date();
+
+    // Kitchen 7 - HIGH PERFORMER (efficient, minimal wastage)
+    for (let dayOffset = 7; dayOffset >= 1; dayOffset--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - dayOffset);
         const dateStr = date.toISOString().split('T')[0];
         const createdAt = date.toISOString();
-        
+
         sampleMaterialUsage.push(
             {
-                dapurId: 1,
+                dapurId: 7,
                 date: dateStr,
                 materialName: 'Beras Premium',
                 unit: 'kg',
@@ -31,7 +31,7 @@ async function main() {
                 createdAt: createdAt,
             },
             {
-                dapurId: 1,
+                dapurId: 7,
                 date: dateStr,
                 materialName: 'Ayam Potong',
                 unit: 'kg',
@@ -42,7 +42,7 @@ async function main() {
                 createdAt: createdAt,
             },
             {
-                dapurId: 1,
+                dapurId: 7,
                 date: dateStr,
                 materialName: 'Sayuran Segar',
                 unit: 'kg',
@@ -55,14 +55,16 @@ async function main() {
         );
     }
 
-    // Kitchen 2 - GOOD PERFORMER (normal variance)
-    for (const date of dates) {
+    // Kitchen 8 - GOOD PERFORMER (normal variance)
+    for (let dayOffset = 7; dayOffset >= 1; dayOffset--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - dayOffset);
         const dateStr = date.toISOString().split('T')[0];
         const createdAt = date.toISOString();
-        
+
         sampleMaterialUsage.push(
             {
-                dapurId: 2,
+                dapurId: 8,
                 date: dateStr,
                 materialName: 'Beras Premium',
                 unit: 'kg',
@@ -73,7 +75,7 @@ async function main() {
                 createdAt: createdAt,
             },
             {
-                dapurId: 2,
+                dapurId: 8,
                 date: dateStr,
                 materialName: 'Ayam Potong',
                 unit: 'kg',
@@ -84,7 +86,7 @@ async function main() {
                 createdAt: createdAt,
             },
             {
-                dapurId: 2,
+                dapurId: 8,
                 date: dateStr,
                 materialName: 'Sayuran Segar',
                 unit: 'kg',
@@ -97,17 +99,18 @@ async function main() {
         );
     }
 
-    // Kitchen 3 - AVERAGE (some wastage warnings)
-    for (let i = 0; i < dates.length; i++) {
-        const date = dates[i];
+    // Kitchen 9 - AVERAGE (some wastage)
+    for (let dayOffset = 7; dayOffset >= 1; dayOffset--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - dayOffset);
         const dateStr = date.toISOString().split('T')[0];
         const createdAt = date.toISOString();
-        
-        if (i < 3) {
-            // Days 1-3
+        const dayNumber = 8 - dayOffset;
+
+        if (dayNumber <= 3) {
             sampleMaterialUsage.push(
                 {
-                    dapurId: 3,
+                    dapurId: 9,
                     date: dateStr,
                     materialName: 'Beras Premium',
                     unit: 'kg',
@@ -118,7 +121,7 @@ async function main() {
                     createdAt: createdAt,
                 },
                 {
-                    dapurId: 3,
+                    dapurId: 9,
                     date: dateStr,
                     materialName: 'Ayam Potong',
                     unit: 'kg',
@@ -129,7 +132,7 @@ async function main() {
                     createdAt: createdAt,
                 },
                 {
-                    dapurId: 3,
+                    dapurId: 9,
                     date: dateStr,
                     materialName: 'Sayuran Segar',
                     unit: 'kg',
@@ -141,10 +144,9 @@ async function main() {
                 }
             );
         } else {
-            // Days 4-7
             sampleMaterialUsage.push(
                 {
-                    dapurId: 3,
+                    dapurId: 9,
                     date: dateStr,
                     materialName: 'Beras Premium',
                     unit: 'kg',
@@ -155,7 +157,7 @@ async function main() {
                     createdAt: createdAt,
                 },
                 {
-                    dapurId: 3,
+                    dapurId: 9,
                     date: dateStr,
                     materialName: 'Ayam Potong',
                     unit: 'kg',
@@ -166,7 +168,7 @@ async function main() {
                     createdAt: createdAt,
                 },
                 {
-                    dapurId: 3,
+                    dapurId: 9,
                     date: dateStr,
                     materialName: 'Sayuran Segar',
                     unit: 'kg',
@@ -180,14 +182,16 @@ async function main() {
         }
     }
 
-    // Kitchen 4 - NEEDS IMPROVEMENT (high wastage, alerts)
-    for (const date of dates) {
+    // Kitchen 10 - NEEDS IMPROVEMENT (high wastage)
+    for (let dayOffset = 7; dayOffset >= 1; dayOffset--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - dayOffset);
         const dateStr = date.toISOString().split('T')[0];
         const createdAt = date.toISOString();
-        
+
         sampleMaterialUsage.push(
             {
-                dapurId: 4,
+                dapurId: 10,
                 date: dateStr,
                 materialName: 'Beras Premium',
                 unit: 'kg',
@@ -198,7 +202,7 @@ async function main() {
                 createdAt: createdAt,
             },
             {
-                dapurId: 4,
+                dapurId: 10,
                 date: dateStr,
                 materialName: 'Ayam Potong',
                 unit: 'kg',
@@ -209,7 +213,7 @@ async function main() {
                 createdAt: createdAt,
             },
             {
-                dapurId: 4,
+                dapurId: 10,
                 date: dateStr,
                 materialName: 'Sayuran Segar',
                 unit: 'kg',
@@ -222,18 +226,18 @@ async function main() {
         );
     }
 
-    // Kitchen 5 - MIXED (varying performance)
-    for (let i = 0; i < dates.length; i++) {
-        const date = dates[i];
+    // Kitchen 11 - MIXED (varying performance)
+    for (let dayOffset = 7; dayOffset >= 1; dayOffset--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - dayOffset);
         const dateStr = date.toISOString().split('T')[0];
         const createdAt = date.toISOString();
-        const dayNumber = i + 1;
-        
+        const dayNumber = 8 - dayOffset;
+
         if (dayNumber % 2 === 1) {
-            // Days 1, 3, 5, 7 - Good performance
             sampleMaterialUsage.push(
                 {
-                    dapurId: 5,
+                    dapurId: 11,
                     date: dateStr,
                     materialName: 'Beras Premium',
                     unit: 'kg',
@@ -244,7 +248,7 @@ async function main() {
                     createdAt: createdAt,
                 },
                 {
-                    dapurId: 5,
+                    dapurId: 11,
                     date: dateStr,
                     materialName: 'Ayam Potong',
                     unit: 'kg',
@@ -255,7 +259,7 @@ async function main() {
                     createdAt: createdAt,
                 },
                 {
-                    dapurId: 5,
+                    dapurId: 11,
                     date: dateStr,
                     materialName: 'Sayuran Segar',
                     unit: 'kg',
@@ -267,10 +271,9 @@ async function main() {
                 }
             );
         } else {
-            // Days 2, 4, 6 - Warning performance
             sampleMaterialUsage.push(
                 {
-                    dapurId: 5,
+                    dapurId: 11,
                     date: dateStr,
                     materialName: 'Beras Premium',
                     unit: 'kg',
@@ -281,7 +284,7 @@ async function main() {
                     createdAt: createdAt,
                 },
                 {
-                    dapurId: 5,
+                    dapurId: 11,
                     date: dateStr,
                     materialName: 'Ayam Potong',
                     unit: 'kg',
@@ -292,7 +295,7 @@ async function main() {
                     createdAt: createdAt,
                 },
                 {
-                    dapurId: 5,
+                    dapurId: 11,
                     date: dateStr,
                     materialName: 'Sayuran Segar',
                     unit: 'kg',
@@ -309,6 +312,7 @@ async function main() {
     await db.insert(materialUsage).values(sampleMaterialUsage);
     
     console.log('✅ Material usage seeder completed successfully');
+    console.log(`📊 Total records created: ${sampleMaterialUsage.length}`);
 }
 
 main().catch((error) => {

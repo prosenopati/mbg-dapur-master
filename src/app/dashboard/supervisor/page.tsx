@@ -62,6 +62,8 @@ import {
   Minus,
   Building2,
   Loader2,
+  BarChart3,
+  PieChart as PieChartIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -152,6 +154,7 @@ export default function SupervisorDashboard() {
   const [selectedDapurId, setSelectedDapurId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"single" | "comparison">("single");
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("overview");
 
   // Data states
   const [dailyMetrics, setDailyMetrics] = useState<DailyMetric[]>([]);
@@ -282,7 +285,40 @@ export default function SupervisorDashboard() {
   }
 
   if (viewMode === "comparison") {
-    return <ComparisonView dapurs={dapurs} />;
+    return (
+      <div className="space-y-6">
+        {/* Header with Back Button */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 shadow-lg">
+                <Eye className="h-6 w-6 text-white" />
+              </div>
+              Dashboard Pengawas MBG - Kabupaten Kendal
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Perbandingan Multi Dapur - Wilayah Kab. Kendal, Jawa Tengah
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setViewMode("single")}
+            >
+              <Building2 className="h-4 w-4 mr-2" />
+              Kembali ke Single View
+            </Button>
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export Laporan
+            </Button>
+          </div>
+        </div>
+
+        <ComparisonView dapurs={dapurs} />
+      </div>
+    );
   }
 
   return (
@@ -294,28 +330,20 @@ export default function SupervisorDashboard() {
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 shadow-lg">
               <Eye className="h-6 w-6 text-white" />
             </div>
-            Dashboard Pengawas MBG - Multi Dapur
+            Dashboard Pengawas MBG - Kabupaten Kendal
           </h1>
           <p className="text-muted-foreground mt-1">
-            Monitoring & Audit Multi Dapur - Pengawas Pemerintah
+            Monitoring Multi Dapur - Wilayah Kab. Kendal, Jawa Tengah
           </p>
         </div>
         <div className="flex gap-2">
           <Button
-            variant={viewMode === "single" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setViewMode("single")}
-          >
-            <Building2 className="h-4 w-4 mr-2" />
-            Single View
-          </Button>
-          <Button
-            variant={viewMode === "comparison" ? "default" : "outline"}
+            variant="default"
             size="sm"
             onClick={() => setViewMode("comparison")}
           >
-            <Activity className="h-4 w-4 mr-2" />
-            Comparison
+            <BarChart3 className="h-4 w-4 mr-2" />
+            Lihat Perbandingan
           </Button>
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
@@ -325,9 +353,13 @@ export default function SupervisorDashboard() {
       </div>
 
       {/* Kitchen Selector */}
-      <Card className="bg-gradient-to-r from-primary/5 to-primary/10">
+      <Card className="bg-gradient-to-r from-teal-500/10 to-teal-600/10 border-teal-200 dark:border-teal-800">
         <CardHeader>
-          <CardTitle className="text-lg">Pilih Dapur untuk Monitoring</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+            Pilih Dapur untuk Monitoring Detail
+          </CardTitle>
+          <CardDescription>Kabupaten Kendal, Jawa Tengah</CardDescription>
         </CardHeader>
         <CardContent>
           <Select
@@ -509,185 +541,236 @@ export default function SupervisorDashboard() {
             </div>
           )}
 
-          {/* Menu Hari Ini */}
-          <Card className="bg-gradient-to-r from-primary/5 to-primary/10">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <UtensilsCrossed className="h-5 w-5 text-primary" />
-                Menu Hari Ini
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="space-y-1">
-                  <Badge variant="outline" className="mb-2">Pagi</Badge>
-                  <p className="text-sm">{todayMenu[0]?.dishes[0] || "Tidak tersedia"}</p>
-                </div>
-                <div className="space-y-1">
-                  <Badge variant="outline" className="mb-2">Siang</Badge>
-                  <p className="text-sm">{todayMenu[1]?.dishes[0] || "Tidak tersedia"}</p>
-                </div>
-                <div className="space-y-1">
-                  <Badge variant="outline" className="mb-2">Malam</Badge>
-                  <p className="text-sm">{todayMenu[2]?.dishes[0] || "Tidak tersedia"}</p>
-                </div>
+          {/* Tabbed Content - PRESERVED VISIBILITY */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+            <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+              <TabsTrigger value="overview" className="gap-2">
+                <Activity className="h-4 w-4" />
+                <span className="hidden sm:inline">Overview</span>
+              </TabsTrigger>
+              <TabsTrigger value="production" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden sm:inline">Produksi</span>
+              </TabsTrigger>
+              <TabsTrigger value="materials" className="gap-2">
+                <Package className="h-4 w-4" />
+                <span className="hidden sm:inline">Bahan & Staff</span>
+              </TabsTrigger>
+              <TabsTrigger value="quality" className="gap-2">
+                <ShieldCheck className="h-4 w-4" />
+                <span className="hidden sm:inline">Kualitas</span>
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview" className="space-y-4">
+              {/* Menu Hari Ini */}
+              <Card className="bg-gradient-to-r from-primary/5 to-primary/10">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <UtensilsCrossed className="h-5 w-5 text-primary" />
+                    Menu Hari Ini
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <Badge variant="outline" className="mb-2">Pagi</Badge>
+                      <p className="text-sm">{todayMenu[0]?.dishes[0] || "Tidak tersedia"}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <Badge variant="outline" className="mb-2">Siang</Badge>
+                      <p className="text-sm">{todayMenu[1]?.dishes[0] || "Tidak tersedia"}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <Badge variant="outline" className="mb-2">Malam</Badge>
+                      <p className="text-sm">{todayMenu[2]?.dishes[0] || "Tidak tersedia"}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Overview Stats */}
+              <div className="grid gap-4 lg:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Activity className="h-5 w-5 text-primary" />
+                      Sentiment Feedback
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="p-3 bg-green-50 dark:bg-green-950 rounded border border-green-200 dark:border-green-800 text-center">
+                        <ThumbsUp className="h-5 w-5 text-green-600 mx-auto mb-1" />
+                        <p className="text-lg font-bold text-green-600">
+                          {totalFeedback > 0 ? Math.round((positiveFeedback / totalFeedback) * 100) : 0}%
+                        </p>
+                        <p className="text-xs text-muted-foreground">Positif</p>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded border border-gray-200 dark:border-gray-800 text-center">
+                        <Minus className="h-5 w-5 text-gray-600 mx-auto mb-1" />
+                        <p className="text-lg font-bold text-gray-600">
+                          {totalFeedback > 0 ? Math.round((neutralFeedback / totalFeedback) * 100) : 0}%
+                        </p>
+                        <p className="text-xs text-muted-foreground">Netral</p>
+                      </div>
+                      <div className="p-3 bg-red-50 dark:bg-red-950 rounded border border-red-200 dark:border-red-800 text-center">
+                        <ThumbsDown className="h-5 w-5 text-red-600 mx-auto mb-1" />
+                        <p className="text-lg font-bold text-red-600">
+                          {totalFeedback > 0 ? Math.round((negativeFeedback / totalFeedback) * 100) : 0}%
+                        </p>
+                        <p className="text-xs text-muted-foreground">Negatif</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5 text-primary" />
+                      Kehadiran Staff
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Rata-rata Kehadiran</span>
+                        <span className="text-lg font-bold text-green-600">{avgAttendanceRate}%</span>
+                      </div>
+                      <Progress value={avgAttendanceRate} className="h-2" />
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
+            </TabsContent>
 
-          {/* Production Charts */}
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-primary" />
-                  Target vs Realisasi Produksi (7 Hari)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={productionHistory.slice(-7)}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="dayName" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="target" fill="#94a3b8" name="Target" />
-                    <Bar dataKey="actual" fill="#3b82f6" name="Realisasi" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+            <TabsContent value="production" className="space-y-4">
+              {/* Production Charts */}
+              <div className="grid gap-4 lg:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Activity className="h-5 w-5 text-primary" />
+                      Target vs Realisasi Produksi (7 Hari)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={productionHistory.slice(-7)}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="dayName" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="target" fill="#94a3b8" name="Target" />
+                        <Bar dataKey="actual" fill="#3b82f6" name="Realisasi" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                  Trend Produksi 7 Hari
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={productionHistory.slice(-7)}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="dayName" />
-                    <YAxis />
-                    <Tooltip />
-                    <Area
-                      type="monotone"
-                      dataKey="actual"
-                      stroke="#3b82f6"
-                      fill="#3b82f680"
-                      name="Produksi"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-primary" />
+                      Trend Produksi 7 Hari
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <AreaChart data={productionHistory.slice(-7)}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="dayName" />
+                        <YAxis />
+                        <Tooltip />
+                        <Area
+                          type="monotone"
+                          dataKey="actual"
+                          stroke="#3b82f6"
+                          fill="#3b82f680"
+                          name="Produksi"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
 
-          {/* Material Usage Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5 text-primary" />
-                Pemakaian Bahan Harian
-              </CardTitle>
-              <CardDescription>Data pemakaian bahan terbaru</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Bahan</TableHead>
-                    <TableHead className="text-right">Standard</TableHead>
-                    <TableHead className="text-right">Aktual</TableHead>
-                    <TableHead className="text-right">Selisih</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {materialUsage.slice(0, 10).map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.materialName}</TableCell>
-                      <TableCell className="text-right font-mono">
-                        {item.standardAmount} {item.unit}
-                      </TableCell>
-                      <TableCell className="text-right font-mono">
-                        {item.actualAmount} {item.unit}
-                      </TableCell>
-                      <TableCell className="text-right font-mono">
-                        <span className={item.variance > 0 ? "text-red-600" : "text-green-600"}>
-                          {item.variance > 0 ? "+" : ""}
-                          {item.variance} {item.unit}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {item.status === "normal" && <Badge variant="default">Normal</Badge>}
-                        {item.status === "warning" && <Badge variant="secondary">Warning</Badge>}
-                        {item.status === "alert" && <Badge variant="destructive">Alert</Badge>}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+            <TabsContent value="materials" className="space-y-4">
+              {/* Material Usage Table */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="h-5 w-5 text-primary" />
+                    Pemakaian Bahan Harian
+                  </CardTitle>
+                  <CardDescription>Data pemakaian bahan terbaru</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Bahan</TableHead>
+                        <TableHead className="text-right">Standard</TableHead>
+                        <TableHead className="text-right">Aktual</TableHead>
+                        <TableHead className="text-right">Selisih</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {materialUsage.slice(0, 10).map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-medium">{item.materialName}</TableCell>
+                          <TableCell className="text-right font-mono">
+                            {item.standardAmount} {item.unit}
+                          </TableCell>
+                          <TableCell className="text-right font-mono">
+                            {item.actualAmount} {item.unit}
+                          </TableCell>
+                          <TableCell className="text-right font-mono">
+                            <span className={item.variance > 0 ? "text-red-600" : "text-green-600"}>
+                              {item.variance > 0 ? "+" : ""}
+                              {item.variance} {item.unit}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            {item.status === "normal" && <Badge variant="default">Normal</Badge>}
+                            {item.status === "warning" && <Badge variant="secondary">Warning</Badge>}
+                            {item.status === "alert" && <Badge variant="destructive">Alert</Badge>}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          {/* Feedback Section */}
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-primary" />
-                  Sentiment Feedback
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="p-3 bg-green-50 dark:bg-green-950 rounded border border-green-200 dark:border-green-800 text-center">
-                    <ThumbsUp className="h-5 w-5 text-green-600 mx-auto mb-1" />
-                    <p className="text-lg font-bold text-green-600">
-                      {totalFeedback > 0 ? Math.round((positiveFeedback / totalFeedback) * 100) : 0}%
+            <TabsContent value="quality" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ShieldCheck className="h-5 w-5 text-primary" />
+                    Riwayat Skor Sanitasi
+                  </CardTitle>
+                  <CardDescription>Monitoring kebersihan dan sanitasi dapur</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-muted rounded-lg">
+                      <p className="text-sm font-medium mb-2">Skor Rata-rata: {avgSanitationScore}/100</p>
+                      <Progress value={avgSanitationScore} className="h-2" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {sanitationScores.length} inspeksi tercatat dalam 7 hari terakhir
                     </p>
-                    <p className="text-xs text-muted-foreground">Positif</p>
                   </div>
-                  <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded border border-gray-200 dark:border-gray-800 text-center">
-                    <Minus className="h-5 w-5 text-gray-600 mx-auto mb-1" />
-                    <p className="text-lg font-bold text-gray-600">
-                      {totalFeedback > 0 ? Math.round((neutralFeedback / totalFeedback) * 100) : 0}%
-                    </p>
-                    <p className="text-xs text-muted-foreground">Netral</p>
-                  </div>
-                  <div className="p-3 bg-red-50 dark:bg-red-950 rounded border border-red-200 dark:border-red-800 text-center">
-                    <ThumbsDown className="h-5 w-5 text-red-600 mx-auto mb-1" />
-                    <p className="text-lg font-bold text-red-600">
-                      {totalFeedback > 0 ? Math.round((negativeFeedback / totalFeedback) * 100) : 0}%
-                    </p>
-                    <p className="text-xs text-muted-foreground">Negatif</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  Kehadiran Staff
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Rata-rata Kehadiran</span>
-                    <span className="text-lg font-bold text-green-600">{avgAttendanceRate}%</span>
-                  </div>
-                  <Progress value={avgAttendanceRate} className="h-2" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </>
       )}
     </div>

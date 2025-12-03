@@ -5,14 +5,14 @@ async function main() {
     const today = new Date();
     const dates = Array.from({ length: 7 }, (_, i) => {
         const date = new Date(today);
-        date.setDate(date.getDate() - (6 - i));
+        date.setDate(date.getDate() - (7 - i));
         return date.toISOString().split('T')[0];
     });
 
-    const sampleScores = [
-        // Kitchen 1 - HIGH PERFORMER (88-95 scores)
+    const sampleSanitationScores = [
+        // Kitchen 7 - HIGH PERFORMER (88-96 scores)
         {
-            dapurId: 1,
+            dapurId: 7,
             date: dates[0],
             kitchenCleanliness: 92,
             storage: 90,
@@ -23,7 +23,7 @@ async function main() {
             createdAt: new Date(dates[0]).toISOString(),
         },
         {
-            dapurId: 1,
+            dapurId: 7,
             date: dates[1],
             kitchenCleanliness: 93,
             storage: 91,
@@ -34,7 +34,7 @@ async function main() {
             createdAt: new Date(dates[1]).toISOString(),
         },
         {
-            dapurId: 1,
+            dapurId: 7,
             date: dates[2],
             kitchenCleanliness: 91,
             storage: 89,
@@ -45,7 +45,7 @@ async function main() {
             createdAt: new Date(dates[2]).toISOString(),
         },
         {
-            dapurId: 1,
+            dapurId: 7,
             date: dates[3],
             kitchenCleanliness: 94,
             storage: 92,
@@ -56,7 +56,7 @@ async function main() {
             createdAt: new Date(dates[3]).toISOString(),
         },
         {
-            dapurId: 1,
+            dapurId: 7,
             date: dates[4],
             kitchenCleanliness: 92,
             storage: 90,
@@ -67,7 +67,7 @@ async function main() {
             createdAt: new Date(dates[4]).toISOString(),
         },
         {
-            dapurId: 1,
+            dapurId: 7,
             date: dates[5],
             kitchenCleanliness: 93,
             storage: 91,
@@ -78,7 +78,7 @@ async function main() {
             createdAt: new Date(dates[5]).toISOString(),
         },
         {
-            dapurId: 1,
+            dapurId: 7,
             date: dates[6],
             kitchenCleanliness: 95,
             storage: 93,
@@ -89,9 +89,9 @@ async function main() {
             createdAt: new Date(dates[6]).toISOString(),
         },
 
-        // Kitchen 2 - GOOD PERFORMER (85-90 scores)
+        // Kitchen 8 - GOOD PERFORMER (85-92 scores)
         {
-            dapurId: 2,
+            dapurId: 8,
             date: dates[0],
             kitchenCleanliness: 87,
             storage: 86,
@@ -102,7 +102,7 @@ async function main() {
             createdAt: new Date(dates[0]).toISOString(),
         },
         {
-            dapurId: 2,
+            dapurId: 8,
             date: dates[1],
             kitchenCleanliness: 88,
             storage: 87,
@@ -113,7 +113,7 @@ async function main() {
             createdAt: new Date(dates[1]).toISOString(),
         },
         {
-            dapurId: 2,
+            dapurId: 8,
             date: dates[2],
             kitchenCleanliness: 86,
             storage: 85,
@@ -124,7 +124,7 @@ async function main() {
             createdAt: new Date(dates[2]).toISOString(),
         },
         {
-            dapurId: 2,
+            dapurId: 8,
             date: dates[3],
             kitchenCleanliness: 89,
             storage: 88,
@@ -135,7 +135,7 @@ async function main() {
             createdAt: new Date(dates[3]).toISOString(),
         },
         {
-            dapurId: 2,
+            dapurId: 8,
             date: dates[4],
             kitchenCleanliness: 87,
             storage: 86,
@@ -146,7 +146,7 @@ async function main() {
             createdAt: new Date(dates[4]).toISOString(),
         },
         {
-            dapurId: 2,
+            dapurId: 8,
             date: dates[5],
             kitchenCleanliness: 88,
             storage: 87,
@@ -157,7 +157,7 @@ async function main() {
             createdAt: new Date(dates[5]).toISOString(),
         },
         {
-            dapurId: 2,
+            dapurId: 8,
             date: dates[6],
             kitchenCleanliness: 90,
             storage: 89,
@@ -168,9 +168,9 @@ async function main() {
             createdAt: new Date(dates[6]).toISOString(),
         },
 
-        // Kitchen 3 - AVERAGE (78-85 scores)
+        // Kitchen 9 - AVERAGE (78-86 scores)
         {
-            dapurId: 3,
+            dapurId: 9,
             date: dates[0],
             kitchenCleanliness: 80,
             storage: 78,
@@ -181,7 +181,7 @@ async function main() {
             createdAt: new Date(dates[0]).toISOString(),
         },
         {
-            dapurId: 3,
+            dapurId: 9,
             date: dates[1],
             kitchenCleanliness: 82,
             storage: 80,
@@ -192,7 +192,7 @@ async function main() {
             createdAt: new Date(dates[1]).toISOString(),
         },
         {
-            dapurId: 3,
+            dapurId: 9,
             date: dates[2],
             kitchenCleanliness: 81,
             storage: 79,
@@ -203,7 +203,7 @@ async function main() {
             createdAt: new Date(dates[2]).toISOString(),
         },
         {
-            dapurId: 3,
+            dapurId: 9,
             date: dates[3],
             kitchenCleanliness: 83,
             storage: 81,
@@ -214,7 +214,7 @@ async function main() {
             createdAt: new Date(dates[3]).toISOString(),
         },
         {
-            dapurId: 3,
+            dapurId: 9,
             date: dates[4],
             kitchenCleanliness: 79,
             storage: 77,
@@ -225,7 +225,7 @@ async function main() {
             createdAt: new Date(dates[4]).toISOString(),
         },
         {
-            dapurId: 3,
+            dapurId: 9,
             date: dates[5],
             kitchenCleanliness: 82,
             storage: 80,
@@ -236,7 +236,7 @@ async function main() {
             createdAt: new Date(dates[5]).toISOString(),
         },
         {
-            dapurId: 3,
+            dapurId: 9,
             date: dates[6],
             kitchenCleanliness: 84,
             storage: 82,
@@ -247,9 +247,9 @@ async function main() {
             createdAt: new Date(dates[6]).toISOString(),
         },
 
-        // Kitchen 4 - NEEDS IMPROVEMENT (68-78 scores)
+        // Kitchen 10 - NEEDS IMPROVEMENT (67-77 scores)
         {
-            dapurId: 4,
+            dapurId: 10,
             date: dates[0],
             kitchenCleanliness: 70,
             storage: 68,
@@ -260,7 +260,7 @@ async function main() {
             createdAt: new Date(dates[0]).toISOString(),
         },
         {
-            dapurId: 4,
+            dapurId: 10,
             date: dates[1],
             kitchenCleanliness: 72,
             storage: 70,
@@ -271,7 +271,7 @@ async function main() {
             createdAt: new Date(dates[1]).toISOString(),
         },
         {
-            dapurId: 4,
+            dapurId: 10,
             date: dates[2],
             kitchenCleanliness: 69,
             storage: 67,
@@ -282,7 +282,7 @@ async function main() {
             createdAt: new Date(dates[2]).toISOString(),
         },
         {
-            dapurId: 4,
+            dapurId: 10,
             date: dates[3],
             kitchenCleanliness: 73,
             storage: 71,
@@ -293,7 +293,7 @@ async function main() {
             createdAt: new Date(dates[3]).toISOString(),
         },
         {
-            dapurId: 4,
+            dapurId: 10,
             date: dates[4],
             kitchenCleanliness: 75,
             storage: 73,
@@ -304,7 +304,7 @@ async function main() {
             createdAt: new Date(dates[4]).toISOString(),
         },
         {
-            dapurId: 4,
+            dapurId: 10,
             date: dates[5],
             kitchenCleanliness: 71,
             storage: 69,
@@ -315,7 +315,7 @@ async function main() {
             createdAt: new Date(dates[5]).toISOString(),
         },
         {
-            dapurId: 4,
+            dapurId: 10,
             date: dates[6],
             kitchenCleanliness: 74,
             storage: 72,
@@ -326,9 +326,9 @@ async function main() {
             createdAt: new Date(dates[6]).toISOString(),
         },
 
-        // Kitchen 5 - MIXED (75-88 scores, varying)
+        // Kitchen 11 - MIXED (73-90 scores, varying)
         {
-            dapurId: 5,
+            dapurId: 11,
             date: dates[0],
             kitchenCleanliness: 78,
             storage: 76,
@@ -339,7 +339,7 @@ async function main() {
             createdAt: new Date(dates[0]).toISOString(),
         },
         {
-            dapurId: 5,
+            dapurId: 11,
             date: dates[1],
             kitchenCleanliness: 85,
             storage: 83,
@@ -350,7 +350,7 @@ async function main() {
             createdAt: new Date(dates[1]).toISOString(),
         },
         {
-            dapurId: 5,
+            dapurId: 11,
             date: dates[2],
             kitchenCleanliness: 80,
             storage: 78,
@@ -361,7 +361,7 @@ async function main() {
             createdAt: new Date(dates[2]).toISOString(),
         },
         {
-            dapurId: 5,
+            dapurId: 11,
             date: dates[3],
             kitchenCleanliness: 87,
             storage: 85,
@@ -372,7 +372,7 @@ async function main() {
             createdAt: new Date(dates[3]).toISOString(),
         },
         {
-            dapurId: 5,
+            dapurId: 11,
             date: dates[4],
             kitchenCleanliness: 76,
             storage: 74,
@@ -383,7 +383,7 @@ async function main() {
             createdAt: new Date(dates[4]).toISOString(),
         },
         {
-            dapurId: 5,
+            dapurId: 11,
             date: dates[5],
             kitchenCleanliness: 82,
             storage: 80,
@@ -394,7 +394,7 @@ async function main() {
             createdAt: new Date(dates[5]).toISOString(),
         },
         {
-            dapurId: 5,
+            dapurId: 11,
             date: dates[6],
             kitchenCleanliness: 84,
             storage: 82,
@@ -406,7 +406,7 @@ async function main() {
         },
     ];
 
-    await db.insert(sanitationScores).values(sampleScores);
+    await db.insert(sanitationScores).values(sampleSanitationScores);
     
     console.log('✅ Sanitation scores seeder completed successfully');
 }
