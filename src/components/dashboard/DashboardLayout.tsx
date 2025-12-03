@@ -31,6 +31,7 @@ import {
   BookText,
   Scale,
   FileText,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -252,8 +253,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       Dapur: ChefHat,
       Keuangan: Wallet,
       Supplier: Truck,
+      Pengawas: Eye,
     };
-    return icons[role];
+    return icons[role] || Shield;
   };
 
   const getRoleColor = (role: UserRole) => {
@@ -263,8 +265,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       Dapur: "bg-orange-100 text-orange-700 border-orange-200",
       Keuangan: "bg-green-100 text-green-700 border-green-200",
       Supplier: "bg-purple-100 text-purple-700 border-purple-200",
+      Pengawas: "bg-teal-100 text-teal-700 border-teal-200",
     };
-    return colors[role];
+    return colors[role] || "bg-gray-100 text-gray-700 border-gray-200";
   };
 
   const getInitials = (email: string) => {
