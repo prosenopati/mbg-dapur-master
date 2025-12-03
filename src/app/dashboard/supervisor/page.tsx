@@ -585,9 +585,10 @@ export default function SupervisorDashboard() {
                       </div>
                       {todayMenu.find((m) => m.session === "pagi") ? (
                         <div className="space-y-2">
-                          {todayMenu
-                            .find((m) => m.session === "pagi")
-                            ?.dishes.map((dish, idx) => (
+                          {(Array.isArray(todayMenu.find((m) => m.session === "pagi")?.dishes) 
+                            ? todayMenu.find((m) => m.session === "pagi")?.dishes 
+                            : []
+                          ).map((dish, idx) => (
                               <div
                                 key={idx}
                                 className="flex items-start gap-2 p-2 bg-background rounded border"
@@ -620,9 +621,10 @@ export default function SupervisorDashboard() {
                       </div>
                       {todayMenu.find((m) => m.session === "siang") ? (
                         <div className="space-y-2">
-                          {todayMenu
-                            .find((m) => m.session === "siang")
-                            ?.dishes.map((dish, idx) => (
+                          {(Array.isArray(todayMenu.find((m) => m.session === "siang")?.dishes) 
+                            ? todayMenu.find((m) => m.session === "siang")?.dishes 
+                            : []
+                          ).map((dish, idx) => (
                               <div
                                 key={idx}
                                 className="flex items-start gap-2 p-2 bg-background rounded border"
@@ -655,9 +657,10 @@ export default function SupervisorDashboard() {
                       </div>
                       {todayMenu.find((m) => m.session === "malam") ? (
                         <div className="space-y-2">
-                          {todayMenu
-                            .find((m) => m.session === "malam")
-                            ?.dishes.map((dish, idx) => (
+                          {(Array.isArray(todayMenu.find((m) => m.session === "malam")?.dishes) 
+                            ? todayMenu.find((m) => m.session === "malam")?.dishes 
+                            : []
+                          ).map((dish, idx) => (
                               <div
                                 key={idx}
                                 className="flex items-start gap-2 p-2 bg-background rounded border"

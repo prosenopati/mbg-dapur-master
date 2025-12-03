@@ -5,86 +5,34 @@ import { eq, and } from 'drizzle-orm';
 
 const VALID_SESSIONS = ['pagi', 'siang', 'malam'] as const;
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const id = searchParams.get('id');
-    const dapurId = searchParams.get('dapurId');
-    const date = searchParams.get('date');
-    const session = searchParams.get('session');
-    const limit = Math.min(parseInt(searchParams.get('limit') ?? '10'), 100);
-    const offset = parseInt(searchParams.get('offset') ?? '0');
-
-    // Single record by ID
-    if (id) {
-      if (isNaN(parseInt(id))) {
-        return NextResponse.json(
-          { error: 'Valid ID is required', code: 'INVALID_ID' },
-          { status: 400 }
-        );
-      }
-
-      const record = await db
-        .select()
-        .from(menuItems)
-        .where(eq(menuItems.id, parseInt(id)))
-        .limit(1);
-
-      if (record.length === 0) {
-        return NextResponse.json(
-          { error: 'Menu item not found', code: 'NOT_FOUND' },
-          { status: 404 }
-        );
-      }
-
-      return NextResponse.json(record[0], { status: 200 });
-    }
-
-    // List with filters
-    const conditions = [];
-    
-    if (dapurId) {
-      if (isNaN(parseInt(dapurId))) {
-        return NextResponse.json(
-          { error: 'Valid dapur ID is required', code: 'INVALID_DAPUR_ID' },
-          { status: 400 }
-        );
-      }
-      conditions.push(eq(menuItems.dapurId, parseInt(dapurId)));
-    }
-
-    if (date) {
-      conditions.push(eq(menuItems.date, date));
-    }
-
-    if (session) {
-      if (!VALID_SESSIONS.includes(session as any)) {
-        return NextResponse.json(
-          { 
-            error: 'Session must be one of: pagi, siang, malam', 
-            code: 'INVALID_SESSION' 
-          },
-          { status: 400 }
-        );
-      }
-      conditions.push(eq(menuItems.session, session));
-    }
+    const { searchParams } = new URL(request.url);
+    const dapurId = searchParams.get("dapurId");
+    const limit = searchParams.get("limit");
 
     let query = db.select().from(menuItems);
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+    if (dapurId) {
+      query = query.where(eq(menuItems.dapurId, parseInt(dapurId))) as any;
     }
 
-    const results = await query.limit(limit).offset(offset);
+    if (limit) {
+      query = query.limit(parseInt(limit)) as any;
+    }
 
-    return NextResponse.json(results, { status: 200 });
+    const results = await query;
+    
+    // Parse dishes JSON string back to array
+    const parsedResults = results.map((item: any) => ({
+      ...item,
+      dishes: typeof item.dishes === 'string' ? JSON.parse(item.dishes) : item.dishes
+    }));
+
+    return NextResponse.json(parsedResults);
   } catch (error) {
-    console.error('GET error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error: ' + (error as Error).message },
-      { status: 500 }
-    );
+    console.error("Failed to fetch menu items:", error);
+    return NextResponse.json({ error: "Failed to fetch menu items" }, { status: 500 });
   }
 }
 

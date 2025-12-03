@@ -2,70 +2,87 @@ import { db } from '@/db';
 import { menuItems } from '@/db/schema';
 
 async function main() {
-    const today = new Date().toISOString().split('T')[0];
-    const now = new Date().toISOString();
-
-    const riceOptions = ['Nasi Putih', 'Nasi Merah', 'Nasi Uduk', 'Nasi Kuning', 'Nasi Liwet'];
-    
-    const proteinBySession = {
-        pagi: ['Ayam Goreng Kunyit', 'Ayam Goreng Lengkuas', 'Ayam Bakar Madu', 'Telur Dadar', 'Ikan Goreng Tepung'],
-        siang: ['Ikan Bakar', 'Ikan Pindang', 'Ikan Goreng', 'Ayam Kecap', 'Rendang Daging'],
-        malam: ['Rendang Sapi', 'Gulai Ayam', 'Semur Daging', 'Opor Ayam', 'Ayam Goreng Kalasan']
-    };
-    
-    const tofuTempeh = ['Tempe Orek', 'Tempe Goreng', 'Tempe Mendoan', 'Tempe Bacem', 'Tahu Bacem', 'Tahu Goreng', 'Tahu Isi'];
-    
-    const vegetables = ['Sayur Asem', 'Sayur Sop', 'Sayur Bening', 'Sayur Lodeh', 'Sayur Bayam', 'Tumis Kangkung', 'Tumis Buncis', 'Capcay', 'Tumis Kacang Panjang', 'Tumis Tauge'];
-    
-    const fruits = ['Pisang', 'Jeruk', 'Pepaya', 'Semangka', 'Melon', 'Apel', 'Jambu Air'];
-    
-    const sambals = ['Sambal', 'Sambal Terasi', 'Sambal Bawang', 'Sambal Ijo', 'Sambal Merah', 'Sambal Kecap', 'Sambal Hijau'];
-    
-    const extras = ['Kerupuk', 'Lalapan'];
-
-    const getRandomItem = (array: string[]) => array[Math.floor(Math.random() * array.length)];
-
-    const generateMenu = (dapurId: number, session: 'pagi' | 'siang' | 'malam') => {
-        const dishes = [
-            getRandomItem(riceOptions),
-            getRandomItem(proteinBySession[session]),
-            getRandomItem(tofuTempeh),
-            getRandomItem(vegetables),
-            getRandomItem(fruits),
-            getRandomItem(sambals),
-            getRandomItem(extras)
-        ];
-
-        return {
-            dapurId,
-            date: today,
-            session,
-            dishes: JSON.stringify(dishes),
-            createdAt: now
-        };
+    const pagiOptions = {
+        protein: ["Ayam Goreng Bumbu Kuning", "Telur Dadar Isi", "Ayam Ungkep Kecap"],
+        tempe: ["Tempe Orek", "Tahu Bacem", "Tempe Mendoan"],
+        vegetable: ["Sayur Sop", "Sayur Bayam", "Tumis Kangkung"],
+        fruit: ["Pisang", "Jeruk", "Pepaya"]
     };
 
-    const sampleMenuItems = [
-        generateMenu(7, 'pagi'),
-        generateMenu(7, 'siang'),
-        generateMenu(7, 'malam'),
-        generateMenu(8, 'pagi'),
-        generateMenu(8, 'siang'),
-        generateMenu(8, 'malam'),
-        generateMenu(9, 'pagi'),
-        generateMenu(9, 'siang'),
-        generateMenu(9, 'malam'),
-        generateMenu(10, 'pagi'),
-        generateMenu(10, 'siang'),
-        generateMenu(10, 'malam'),
-        generateMenu(11, 'pagi'),
-        generateMenu(11, 'siang'),
-        generateMenu(11, 'malam')
-    ];
+    const siangOptions = {
+        protein: ["Ikan Goreng Tepung", "Rendang Daging", "Ayam Bakar Madu"],
+        tempe: ["Tahu Goreng", "Tempe Penyet", "Tahu Isi"],
+        vegetable: ["Sayur Asem", "Sayur Lodeh", "Capcay"],
+        fruit: ["Semangka", "Melon", "Apel"]
+    };
+
+    const malamOptions = {
+        protein: ["Sate Ayam", "Ikan Bumbu Kuning", "Ayam Suwir Pedas"],
+        tempe: ["Tempe Goreng", "Tahu Crispy", "Tempe Kering"],
+        vegetable: ["Sayur Bening", "Tumis Buncis", "Oseng Terong"],
+        fruit: ["Nanas", "Anggur", "Pir"]
+    };
+
+    const getRandomItem = (array: string[]) => {
+        return array[Math.floor(Math.random() * array.length)];
+    };
+
+    const generateMenuForSession = (session: 'pagi' | 'siang' | 'malam') => {
+        if (session === 'pagi') {
+            return [
+                "Nasi Putih",
+                getRandomItem(pagiOptions.protein),
+                getRandomItem(pagiOptions.tempe),
+                getRandomItem(pagiOptions.vegetable),
+                getRandomItem(pagiOptions.fruit),
+                "Sambal dan Kerupuk"
+            ];
+        } else if (session === 'siang') {
+            return [
+                "Nasi Putih",
+                getRandomItem(siangOptions.protein),
+                getRandomItem(siangOptions.tempe),
+                getRandomItem(siangOptions.vegetable),
+                getRandomItem(siangOptions.fruit),
+                "Sambal dan Kerupuk"
+            ];
+        } else {
+            return [
+                "Nasi Putih",
+                getRandomItem(malamOptions.protein),
+                getRandomItem(malamOptions.tempe),
+                getRandomItem(malamOptions.vegetable),
+                getRandomItem(malamOptions.fruit),
+                "Sambal dan Kerupuk"
+            ];
+        }
+    };
+
+    const kitchenIds = [7, 8, 9, 10, 11];
+    const sessions: Array<'pagi' | 'siang' | 'malam'> = ['pagi', 'siang', 'malam'];
+    const date = '2025-11-29';
+    const createdAt = '2025-11-29T00:00:00.000Z';
+
+    const sampleMenuItems = [];
+
+    for (const dapurId of kitchenIds) {
+        for (const session of sessions) {
+            sampleMenuItems.push({
+                dapurId,
+                date,
+                session,
+                dishes: generateMenuForSession(session),
+                createdAt
+            });
+        }
+    }
 
     await db.insert(menuItems).values(sampleMenuItems);
     
-    console.log('✅ Menu items seeder completed successfully - 15 records created for today');
+    console.log('✅ Menu items seeder completed successfully');
+    console.log(`   Generated ${sampleMenuItems.length} menu items for date ${date}`);
+    console.log(`   Kitchens: ${kitchenIds.join(', ')}`);
+    console.log(`   Sessions: ${sessions.join(', ')}`);
 }
 
 main().catch((error) => {
