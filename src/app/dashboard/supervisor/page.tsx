@@ -541,7 +541,7 @@ export default function SupervisorDashboard() {
             </div>
           )}
 
-          {/* Tabbed Content - PRESERVED VISIBILITY */}
+          {/* Tabbed Content */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
             <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
               <TabsTrigger value="overview" className="gap-2">
@@ -563,160 +563,131 @@ export default function SupervisorDashboard() {
             </TabsList>
 
             <TabsContent value="overview" className="space-y-4">
-              {/* Menu Hari Ini */}
-              <Card className="bg-gradient-to-r from-primary/5 to-primary/10">
+              {/* Menu Hari Ini - Single Unified Menu */}
+              <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-2 border-emerald-200 dark:border-emerald-800">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <UtensilsCrossed className="h-5 w-5 text-primary" />
-                    Menu Hari Ini - Komposisi Lengkap
-                  </CardTitle>
-                  <CardDescription>
-                    Susunan menu makanan bergizi seimbang untuk semua sesi
-                  </CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2 text-xl">
+                        <UtensilsCrossed className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                        Menu Hari Ini - Gizi Seimbang
+                      </CardTitle>
+                      <CardDescription className="mt-1">
+                        Komposisi lengkap menu makanan bergizi untuk semua penerima manfaat
+                      </CardDescription>
+                    </div>
+                    <Badge className="bg-emerald-600 text-white px-3 py-1 text-sm">
+                      Menu Harian
+                    </Badge>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid md:grid-cols-3 gap-6">
-                    {/* Pagi */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Badge variant="default" className="bg-orange-500">
-                          🌅 Pagi
-                        </Badge>
-                      </div>
-                      {todayMenu.find((m) => m.session === "pagi") ? (
-                        <div className="space-y-2">
-                          {(Array.isArray(todayMenu.find((m) => m.session === "pagi")?.dishes) 
-                            ? todayMenu.find((m) => m.session === "pagi")?.dishes 
-                            : []
-                          ).map((dish, idx) => (
-                              <div
-                                key={idx}
-                                className="flex items-start gap-2 p-2 bg-background rounded border"
-                              >
-                                <span className="text-xs font-semibold text-muted-foreground min-w-[20px]">
-                                  {idx === 0 && "🍚"}
-                                  {idx === 1 && "🍗"}
-                                  {idx === 2 && "🥘"}
-                                  {idx === 3 && "🥬"}
-                                  {idx === 4 && "🍎"}
-                                  {idx > 4 && "🌶️"}
-                                </span>
-                                <span className="text-sm flex-1">{dish}</span>
-                              </div>
-                            ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground italic">
-                          Menu belum tersedia
-                        </p>
-                      )}
-                    </div>
+                  {todayMenu.find((m) => m.session === "harian") ? (
+                    <div className="space-y-6">
+                      {/* Main Dishes Display */}
+                      <div className="grid md:grid-cols-2 gap-4">
+                        {(Array.isArray(todayMenu.find((m) => m.session === "harian")?.dishes) 
+                          ? todayMenu.find((m) => m.session === "harian")?.dishes 
+                          : []
+                        ).map((dish, idx) => {
+                          // Determine dish category based on keywords
+                          let category = "Lainnya";
+                          let icon = "🍽️";
+                          let bgColor = "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800";
+                          
+                          if (dish.toLowerCase().includes("nasi")) {
+                            category = "Karbohidrat";
+                            icon = "🍚";
+                            bgColor = "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800";
+                          } else if (dish.toLowerCase().includes("ayam") || dish.toLowerCase().includes("ikan") || 
+                                     dish.toLowerCase().includes("daging") || dish.toLowerCase().includes("rendang") ||
+                                     dish.toLowerCase().includes("tongkol") || dish.toLowerCase().includes("gurame") ||
+                                     dish.toLowerCase().includes("bandeng") || dish.toLowerCase().includes("pepes")) {
+                            category = "Protein Hewani";
+                            icon = "🍗";
+                            bgColor = "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800";
+                          } else if (dish.toLowerCase().includes("tempe") || dish.toLowerCase().includes("tahu")) {
+                            category = "Protein Nabati";
+                            icon = "🥘";
+                            bgColor = "bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800";
+                          } else if (dish.toLowerCase().includes("sayur") || dish.toLowerCase().includes("tumis") ||
+                                     dish.toLowerCase().includes("oseng") || dish.toLowerCase().includes("capcay") ||
+                                     dish.toLowerCase().includes("terong") || dish.toLowerCase().includes("bayam") ||
+                                     dish.toLowerCase().includes("buncis") || dish.toLowerCase().includes("kangkung") ||
+                                     dish.toLowerCase().includes("tauge")) {
+                            category = "Sayuran";
+                            icon = "🥬";
+                            bgColor = "bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800";
+                          } else if (dish.toLowerCase().includes("pisang") || dish.toLowerCase().includes("jeruk") ||
+                                     dish.toLowerCase().includes("semangka") || dish.toLowerCase().includes("melon") ||
+                                     dish.toLowerCase().includes("pepaya") || dish.toLowerCase().includes("buah")) {
+                            category = "Buah";
+                            icon = "🍎";
+                            bgColor = "bg-pink-50 dark:bg-pink-950/30 border-pink-200 dark:border-pink-800";
+                          } else if (dish.toLowerCase().includes("sambal") || dish.toLowerCase().includes("kerupuk")) {
+                            category = "Pelengkap";
+                            icon = "🌶️";
+                            bgColor = "bg-yellow-50 dark:bg-yellow-950/30 border-yellow-200 dark:border-yellow-800";
+                          }
 
-                    {/* Siang */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Badge variant="default" className="bg-yellow-500">
-                          ☀️ Siang
-                        </Badge>
-                      </div>
-                      {todayMenu.find((m) => m.session === "siang") ? (
-                        <div className="space-y-2">
-                          {(Array.isArray(todayMenu.find((m) => m.session === "siang")?.dishes) 
-                            ? todayMenu.find((m) => m.session === "siang")?.dishes 
-                            : []
-                          ).map((dish, idx) => (
-                              <div
-                                key={idx}
-                                className="flex items-start gap-2 p-2 bg-background rounded border"
-                              >
-                                <span className="text-xs font-semibold text-muted-foreground min-w-[20px]">
-                                  {idx === 0 && "🍚"}
-                                  {idx === 1 && "🐟"}
-                                  {idx === 2 && "🥘"}
-                                  {idx === 3 && "🥬"}
-                                  {idx === 4 && "🍊"}
-                                  {idx > 4 && "🌶️"}
-                                </span>
-                                <span className="text-sm flex-1">{dish}</span>
+                          return (
+                            <div
+                              key={idx}
+                              className={`flex items-center gap-3 p-4 rounded-lg border-2 ${bgColor} transition-all hover:scale-105`}
+                            >
+                              <span className="text-3xl">{icon}</span>
+                              <div className="flex-1">
+                                <p className="font-semibold text-foreground">{dish}</p>
+                                <p className="text-xs text-muted-foreground mt-0.5">{category}</p>
                               </div>
-                            ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground italic">
-                          Menu belum tersedia
-                        </p>
-                      )}
-                    </div>
+                            </div>
+                          );
+                        })}
+                      </div>
 
-                    {/* Malam */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Badge variant="default" className="bg-indigo-500">
-                          🌙 Malam
-                        </Badge>
-                      </div>
-                      {todayMenu.find((m) => m.session === "malam") ? (
-                        <div className="space-y-2">
-                          {(Array.isArray(todayMenu.find((m) => m.session === "malam")?.dishes) 
-                            ? todayMenu.find((m) => m.session === "malam")?.dishes 
-                            : []
-                          ).map((dish, idx) => (
-                              <div
-                                key={idx}
-                                className="flex items-start gap-2 p-2 bg-background rounded border"
-                              >
-                                <span className="text-xs font-semibold text-muted-foreground min-w-[20px]">
-                                  {idx === 0 && "🍚"}
-                                  {idx === 1 && "🍖"}
-                                  {idx === 2 && "🥘"}
-                                  {idx === 3 && "🥬"}
-                                  {idx === 4 && "🍉"}
-                                  {idx > 4 && "🌶️"}
-                                </span>
-                                <span className="text-sm flex-1">{dish}</span>
-                              </div>
-                            ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground italic">
-                          Menu belum tersedia
+                      {/* Nutritional Information Summary */}
+                      <div className="mt-6 pt-6 border-t-2 border-emerald-200 dark:border-emerald-800">
+                        <p className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4 text-emerald-600" />
+                          Komposisi Gizi Seimbang:
                         </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Legend */}
-                  <div className="mt-6 pt-4 border-t">
-                    <p className="text-xs font-semibold text-muted-foreground mb-2">
-                      Komposisi Menu:
-                    </p>
-                    <div className="flex flex-wrap gap-3 text-xs">
-                      <div className="flex items-center gap-1">
-                        <span>🍚</span>
-                        <span className="text-muted-foreground">Nasi</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span>🍗🐟🍖</span>
-                        <span className="text-muted-foreground">Lauk Protein</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span>🥘</span>
-                        <span className="text-muted-foreground">Tempe/Tahu</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span>🥬</span>
-                        <span className="text-muted-foreground">Sayur</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span>🍎🍊🍉</span>
-                        <span className="text-muted-foreground">Buah</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span>🌶️</span>
-                        <span className="text-muted-foreground">Sambal & Pelengkap</span>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                          <div className="text-center p-3 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                            <span className="text-2xl block mb-1">🍚</span>
+                            <p className="text-xs font-medium text-foreground">Karbohidrat</p>
+                          </div>
+                          <div className="text-center p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                            <span className="text-2xl block mb-1">🍗</span>
+                            <p className="text-xs font-medium text-foreground">Protein Hewani</p>
+                          </div>
+                          <div className="text-center p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                            <span className="text-2xl block mb-1">🥘</span>
+                            <p className="text-xs font-medium text-foreground">Protein Nabati</p>
+                          </div>
+                          <div className="text-center p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                            <span className="text-2xl block mb-1">🥬</span>
+                            <p className="text-xs font-medium text-foreground">Sayuran</p>
+                          </div>
+                          <div className="text-center p-3 bg-pink-100 dark:bg-pink-900/30 rounded-lg">
+                            <span className="text-2xl block mb-1">🍎</span>
+                            <p className="text-xs font-medium text-foreground">Buah Segar</p>
+                          </div>
+                          <div className="text-center p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                            <span className="text-2xl block mb-1">🌶️</span>
+                            <p className="text-xs font-medium text-foreground">Pelengkap</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <UtensilsCrossed className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                      <p className="text-muted-foreground">Menu hari ini belum tersedia</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Silakan hubungi manager dapur untuk informasi menu
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
