@@ -18,6 +18,7 @@ import {
   Lock,
   Wallet,
   Truck,
+  Eye,
 } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -73,6 +74,15 @@ export default function Home() {
       color: "text-purple-600",
       bgColor: "bg-purple-50 dark:bg-purple-950",
       dashboard: "/dashboard"
+    },
+    {
+      role: "Pengawas",
+      email: "pengawas@mbgdapur.com",
+      password: "pengawas123",
+      icon: Eye,
+      color: "text-teal-600",
+      bgColor: "bg-teal-50 dark:bg-teal-950",
+      dashboard: "/dashboard/supervisor"
     }
   ];
 

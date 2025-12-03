@@ -1,6 +1,6 @@
 // Role-Based Access Control (RBAC) Configuration
 
-export type UserRole = "Admin" | "Manager" | "Dapur" | "Keuangan" | "Supplier";
+export type UserRole = "Admin" | "Manager" | "Dapur" | "Keuangan" | "Supplier" | "Pengawas";
 
 export interface RolePermissions {
   role: UserRole;
@@ -80,6 +80,14 @@ export const rolePermissions: Record<UserRole, RolePermissions> = {
       "/dashboard/profile",
     ],
     description: "Akses Purchase Orders dan History"
+  },
+  Pengawas: {
+    role: "Pengawas",
+    allowedRoutes: [
+      "/dashboard/supervisor",
+      "/dashboard/profile",
+    ],
+    description: "Dashboard Pengawas Pemerintah - Monitoring & Audit Dapur MBG"
   }
 };
 
