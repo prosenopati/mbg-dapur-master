@@ -3,124 +3,69 @@ import { menuItems } from '@/db/schema';
 
 async function main() {
     const today = new Date().toISOString().split('T')[0];
-    const currentTimestamp = new Date().toISOString();
+    const now = new Date().toISOString();
+
+    const riceOptions = ['Nasi Putih', 'Nasi Merah', 'Nasi Uduk', 'Nasi Kuning', 'Nasi Liwet'];
+    
+    const proteinBySession = {
+        pagi: ['Ayam Goreng Kunyit', 'Ayam Goreng Lengkuas', 'Ayam Bakar Madu', 'Telur Dadar', 'Ikan Goreng Tepung'],
+        siang: ['Ikan Bakar', 'Ikan Pindang', 'Ikan Goreng', 'Ayam Kecap', 'Rendang Daging'],
+        malam: ['Rendang Sapi', 'Gulai Ayam', 'Semur Daging', 'Opor Ayam', 'Ayam Goreng Kalasan']
+    };
+    
+    const tofuTempeh = ['Tempe Orek', 'Tempe Goreng', 'Tempe Mendoan', 'Tempe Bacem', 'Tahu Bacem', 'Tahu Goreng', 'Tahu Isi'];
+    
+    const vegetables = ['Sayur Asem', 'Sayur Sop', 'Sayur Bening', 'Sayur Lodeh', 'Sayur Bayam', 'Tumis Kangkung', 'Tumis Buncis', 'Capcay', 'Tumis Kacang Panjang', 'Tumis Tauge'];
+    
+    const fruits = ['Pisang', 'Jeruk', 'Pepaya', 'Semangka', 'Melon', 'Apel', 'Jambu Air'];
+    
+    const sambals = ['Sambal', 'Sambal Terasi', 'Sambal Bawang', 'Sambal Ijo', 'Sambal Merah', 'Sambal Kecap', 'Sambal Hijau'];
+    
+    const extras = ['Kerupuk', 'Lalapan'];
+
+    const getRandomItem = (array: string[]) => array[Math.floor(Math.random() * array.length)];
+
+    const generateMenu = (dapurId: number, session: 'pagi' | 'siang' | 'malam') => {
+        const dishes = [
+            getRandomItem(riceOptions),
+            getRandomItem(proteinBySession[session]),
+            getRandomItem(tofuTempeh),
+            getRandomItem(vegetables),
+            getRandomItem(fruits),
+            getRandomItem(sambals),
+            getRandomItem(extras)
+        ];
+
+        return {
+            dapurId,
+            date: today,
+            session,
+            dishes: JSON.stringify(dishes),
+            createdAt: now
+        };
+    };
 
     const sampleMenuItems = [
-        // Dapur MBG Kendal Kota (dapurId: 7)
-        {
-            dapurId: 7,
-            date: today,
-            session: 'pagi',
-            dishes: ["Nasi Putih", "Ayam Goreng Kunyit", "Tempe Orek", "Sayur Asem", "Sambal", "Kerupuk"],
-            createdAt: currentTimestamp,
-        },
-        {
-            dapurId: 7,
-            date: today,
-            session: 'siang',
-            dishes: ["Nasi Putih", "Ikan Bakar", "Tahu Bacem", "Tumis Kangkung", "Sambal Terasi", "Lalapan"],
-            createdAt: currentTimestamp,
-        },
-        {
-            dapurId: 7,
-            date: today,
-            session: 'malam',
-            dishes: ["Nasi Putih", "Rendang Sapi", "Perkedel Kentang", "Sayur Lodeh", "Sambal Ijo", "Kerupuk"],
-            createdAt: currentTimestamp,
-        },
-        // Dapur MBG Weleri (dapurId: 8)
-        {
-            dapurId: 8,
-            date: today,
-            session: 'pagi',
-            dishes: ["Nasi Putih", "Ayam Goreng Lengkuas", "Tempe Goreng", "Sayur Sop", "Sambal", "Kerupuk"],
-            createdAt: currentTimestamp,
-        },
-        {
-            dapurId: 8,
-            date: today,
-            session: 'siang',
-            dishes: ["Nasi Putih", "Ikan Pindang", "Tahu Goreng", "Tumis Buncis", "Sambal Bawang", "Lalapan"],
-            createdAt: currentTimestamp,
-        },
-        {
-            dapurId: 8,
-            date: today,
-            session: 'malam',
-            dishes: ["Nasi Putih", "Gulai Ayam", "Perkedel Jagung", "Sayur Bayam", "Sambal Merah", "Kerupuk"],
-            createdAt: currentTimestamp,
-        },
-        // Dapur MBG Kaliwungu (dapurId: 9)
-        {
-            dapurId: 9,
-            date: today,
-            session: 'pagi',
-            dishes: ["Nasi Putih", "Ayam Bakar", "Tempe Mendoan", "Sayur Bening", "Sambal", "Kerupuk"],
-            createdAt: currentTimestamp,
-        },
-        {
-            dapurId: 9,
-            date: today,
-            session: 'siang',
-            dishes: ["Nasi Putih", "Ikan Goreng", "Tahu Isi", "Capcay", "Sambal Kecap", "Lalapan"],
-            createdAt: currentTimestamp,
-        },
-        {
-            dapurId: 9,
-            date: today,
-            session: 'malam',
-            dishes: ["Nasi Putih", "Semur Daging", "Bakwan Sayur", "Sayur Asem", "Sambal", "Kerupuk"],
-            createdAt: currentTimestamp,
-        },
-        // Dapur MBG Patebon (dapurId: 10)
-        {
-            dapurId: 10,
-            date: today,
-            session: 'pagi',
-            dishes: ["Nasi Putih", "Ayam Goreng", "Tempe Bacem", "Sayur Oyong", "Sambal", "Kerupuk"],
-            createdAt: currentTimestamp,
-        },
-        {
-            dapurId: 10,
-            date: today,
-            session: 'siang',
-            dishes: ["Nasi Putih", "Ikan Asin", "Tahu Goreng", "Tumis Tauge", "Sambal", "Lalapan"],
-            createdAt: currentTimestamp,
-        },
-        {
-            dapurId: 10,
-            date: today,
-            session: 'malam',
-            dishes: ["Nasi Putih", "Opor Ayam", "Perkedel", "Sayur Lodeh", "Sambal", "Kerupuk"],
-            createdAt: currentTimestamp,
-        },
-        // Dapur MBG Cepiring (dapurId: 11)
-        {
-            dapurId: 11,
-            date: today,
-            session: 'pagi',
-            dishes: ["Nasi Putih", "Ayam Kecap", "Tempe Goreng", "Sayur Sop", "Sambal", "Kerupuk"],
-            createdAt: currentTimestamp,
-        },
-        {
-            dapurId: 11,
-            date: today,
-            session: 'siang',
-            dishes: ["Nasi Putih", "Ikan Bumbu Kuning", "Tahu Bacem", "Tumis Kacang Panjang", "Sambal", "Lalapan"],
-            createdAt: currentTimestamp,
-        },
-        {
-            dapurId: 11,
-            date: today,
-            session: 'malam',
-            dishes: ["Nasi Putih", "Ayam Goreng Kalasan", "Bakwan Udang", "Sayur Asem", "Sambal Hijau", "Kerupuk"],
-            createdAt: currentTimestamp,
-        },
+        generateMenu(7, 'pagi'),
+        generateMenu(7, 'siang'),
+        generateMenu(7, 'malam'),
+        generateMenu(8, 'pagi'),
+        generateMenu(8, 'siang'),
+        generateMenu(8, 'malam'),
+        generateMenu(9, 'pagi'),
+        generateMenu(9, 'siang'),
+        generateMenu(9, 'malam'),
+        generateMenu(10, 'pagi'),
+        generateMenu(10, 'siang'),
+        generateMenu(10, 'malam'),
+        generateMenu(11, 'pagi'),
+        generateMenu(11, 'siang'),
+        generateMenu(11, 'malam')
     ];
 
     await db.insert(menuItems).values(sampleMenuItems);
     
-    console.log('✅ Menu items seeder completed successfully');
+    console.log('✅ Menu items seeder completed successfully - 15 records created for today');
 }
 
 main().catch((error) => {

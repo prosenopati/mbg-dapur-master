@@ -568,22 +568,150 @@ export default function SupervisorDashboard() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <UtensilsCrossed className="h-5 w-5 text-primary" />
-                    Menu Hari Ini
+                    Menu Hari Ini - Komposisi Lengkap
                   </CardTitle>
+                  <CardDescription>
+                    Susunan menu makanan bergizi seimbang untuk semua sesi
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div className="space-y-1">
-                      <Badge variant="outline" className="mb-2">Pagi</Badge>
-                      <p className="text-sm">{todayMenu[0]?.dishes[0] || "Tidak tersedia"}</p>
+                  <div className="grid md:grid-cols-3 gap-6">
+                    {/* Pagi */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Badge variant="default" className="bg-orange-500">
+                          🌅 Pagi
+                        </Badge>
+                      </div>
+                      {todayMenu.find((m) => m.session === "pagi") ? (
+                        <div className="space-y-2">
+                          {todayMenu
+                            .find((m) => m.session === "pagi")
+                            ?.dishes.map((dish, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-start gap-2 p-2 bg-background rounded border"
+                              >
+                                <span className="text-xs font-semibold text-muted-foreground min-w-[20px]">
+                                  {idx === 0 && "🍚"}
+                                  {idx === 1 && "🍗"}
+                                  {idx === 2 && "🥘"}
+                                  {idx === 3 && "🥬"}
+                                  {idx === 4 && "🍎"}
+                                  {idx > 4 && "🌶️"}
+                                </span>
+                                <span className="text-sm flex-1">{dish}</span>
+                              </div>
+                            ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground italic">
+                          Menu belum tersedia
+                        </p>
+                      )}
                     </div>
-                    <div className="space-y-1">
-                      <Badge variant="outline" className="mb-2">Siang</Badge>
-                      <p className="text-sm">{todayMenu[1]?.dishes[0] || "Tidak tersedia"}</p>
+
+                    {/* Siang */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Badge variant="default" className="bg-yellow-500">
+                          ☀️ Siang
+                        </Badge>
+                      </div>
+                      {todayMenu.find((m) => m.session === "siang") ? (
+                        <div className="space-y-2">
+                          {todayMenu
+                            .find((m) => m.session === "siang")
+                            ?.dishes.map((dish, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-start gap-2 p-2 bg-background rounded border"
+                              >
+                                <span className="text-xs font-semibold text-muted-foreground min-w-[20px]">
+                                  {idx === 0 && "🍚"}
+                                  {idx === 1 && "🐟"}
+                                  {idx === 2 && "🥘"}
+                                  {idx === 3 && "🥬"}
+                                  {idx === 4 && "🍊"}
+                                  {idx > 4 && "🌶️"}
+                                </span>
+                                <span className="text-sm flex-1">{dish}</span>
+                              </div>
+                            ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground italic">
+                          Menu belum tersedia
+                        </p>
+                      )}
                     </div>
-                    <div className="space-y-1">
-                      <Badge variant="outline" className="mb-2">Malam</Badge>
-                      <p className="text-sm">{todayMenu[2]?.dishes[0] || "Tidak tersedia"}</p>
+
+                    {/* Malam */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Badge variant="default" className="bg-indigo-500">
+                          🌙 Malam
+                        </Badge>
+                      </div>
+                      {todayMenu.find((m) => m.session === "malam") ? (
+                        <div className="space-y-2">
+                          {todayMenu
+                            .find((m) => m.session === "malam")
+                            ?.dishes.map((dish, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-start gap-2 p-2 bg-background rounded border"
+                              >
+                                <span className="text-xs font-semibold text-muted-foreground min-w-[20px]">
+                                  {idx === 0 && "🍚"}
+                                  {idx === 1 && "🍖"}
+                                  {idx === 2 && "🥘"}
+                                  {idx === 3 && "🥬"}
+                                  {idx === 4 && "🍉"}
+                                  {idx > 4 && "🌶️"}
+                                </span>
+                                <span className="text-sm flex-1">{dish}</span>
+                              </div>
+                            ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground italic">
+                          Menu belum tersedia
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Legend */}
+                  <div className="mt-6 pt-4 border-t">
+                    <p className="text-xs font-semibold text-muted-foreground mb-2">
+                      Komposisi Menu:
+                    </p>
+                    <div className="flex flex-wrap gap-3 text-xs">
+                      <div className="flex items-center gap-1">
+                        <span>🍚</span>
+                        <span className="text-muted-foreground">Nasi</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span>🍗🐟🍖</span>
+                        <span className="text-muted-foreground">Lauk Protein</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span>🥘</span>
+                        <span className="text-muted-foreground">Tempe/Tahu</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span>🥬</span>
+                        <span className="text-muted-foreground">Sayur</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span>🍎🍊🍉</span>
+                        <span className="text-muted-foreground">Buah</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span>🌶️</span>
+                        <span className="text-muted-foreground">Sambal & Pelengkap</span>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
