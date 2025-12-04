@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -219,7 +218,7 @@ export default function InventoryPage() {
   };
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-4 md:space-y-6">
         {/* Header with Alert Card */}
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
@@ -714,6 +713,6 @@ export default function InventoryPage() {
           </form>
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </>
   );
 }
