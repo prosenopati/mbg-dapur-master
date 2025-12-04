@@ -116,133 +116,143 @@ export default function DashboardPage() {
       .slice(0, 5);
 
     return (
-      <div className="space-y-3 md:space-y-4">
+      <div className="space-y-4 md:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2">
-              <Truck className="h-6 w-6 text-purple-600" />
-              Supplier Dashboard
-            </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Kelola Purchase Orders dan Pengiriman - Enhanced Workflow
-            </p>
-          </div>
+        <div className="text-center">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight flex items-center justify-center gap-3">
+            <Truck className="h-8 w-8 text-purple-600" />
+            Dashboard Supplier
+          </h1>
+          <p className="text-sm md:text-base text-muted-foreground mt-2">
+            Kelola Purchase Orders dan Pengiriman - Enhanced Workflow
+          </p>
         </div>
 
-        {/* Supplier Metrics - Compact */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-          <Card>
-            <CardHeader className="pb-1 px-2.5 pt-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-[10px] font-medium text-muted-foreground">Pending PO</CardTitle>
-                <Clock className="h-3.5 w-3.5 text-yellow-600" />
+        {/* Supplier Metrics - Enhanced & Centered */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          <Card className="border-yellow-200 bg-yellow-50/50 dark:bg-yellow-950/20">
+            <CardHeader className="pb-2 px-4 pt-4">
+              <div className="flex flex-col items-center gap-2">
+                <Clock className="h-6 w-6 md:h-8 md:w-8 text-yellow-600" />
+                <CardTitle className="text-xs md:text-sm font-semibold text-center text-yellow-900 dark:text-yellow-100">
+                  PO Menunggu
+                </CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="px-2.5 pb-2">
-              <div className="text-xl font-bold text-yellow-600">
+            <CardContent className="px-4 pb-4 text-center">
+              <div className="text-3xl md:text-4xl font-bold text-yellow-600 mb-1">
                 {purchaseOrderService.getByStatus('sent').length}
               </div>
-              <p className="text-[10px] text-muted-foreground">need approval</p>
+              <p className="text-xs md:text-sm text-muted-foreground">perlu persetujuan</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-1 px-2.5 pt-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-[10px] font-medium text-muted-foreground">Approved</CardTitle>
-                <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+          <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20">
+            <CardHeader className="pb-2 px-4 pt-4">
+              <div className="flex flex-col items-center gap-2">
+                <CheckCircle2 className="h-6 w-6 md:h-8 md:w-8 text-green-600" />
+                <CardTitle className="text-xs md:text-sm font-semibold text-center text-green-900 dark:text-green-100">
+                  Disetujui
+                </CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="px-2.5 pb-2">
-              <div className="text-xl font-bold text-green-600">
+            <CardContent className="px-4 pb-4 text-center">
+              <div className="text-3xl md:text-4xl font-bold text-green-600 mb-1">
                 {purchaseOrderService.getByStatus('supplier_approved').length}
               </div>
-              <p className="text-[10px] text-muted-foreground">this month</p>
+              <p className="text-xs md:text-sm text-muted-foreground">bulan ini</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-1 px-2.5 pt-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-[10px] font-medium text-muted-foreground">In Transit</CardTitle>
-                <Truck className="h-3.5 w-3.5 text-blue-600" />
+          <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
+            <CardHeader className="pb-2 px-4 pt-4">
+              <div className="flex flex-col items-center gap-2">
+                <Truck className="h-6 w-6 md:h-8 md:w-8 text-blue-600" />
+                <CardTitle className="text-xs md:text-sm font-semibold text-center text-blue-900 dark:text-blue-100">
+                  Dalam Pengiriman
+                </CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="px-2.5 pb-2">
-              <div className="text-xl font-bold text-blue-600">
+            <CardContent className="px-4 pb-4 text-center">
+              <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-1">
                 {purchaseOrderService.getByStatus('in_transit').length}
               </div>
-              <p className="text-[10px] text-muted-foreground">on delivery</p>
+              <p className="text-xs md:text-sm text-muted-foreground">sedang dikirim</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-1 px-2.5 pt-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-[10px] font-medium text-muted-foreground">Completed</CardTitle>
-                <FileText className="h-3.5 w-3.5 text-purple-600" />
+          <Card className="border-purple-200 bg-purple-50/50 dark:bg-purple-950/20">
+            <CardHeader className="pb-2 px-4 pt-4">
+              <div className="flex flex-col items-center gap-2">
+                <FileText className="h-6 w-6 md:h-8 md:w-8 text-purple-600" />
+                <CardTitle className="text-xs md:text-sm font-semibold text-center text-purple-900 dark:text-purple-100">
+                  Selesai
+                </CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="px-2.5 pb-2">
-              <div className="text-xl font-bold text-purple-600">
+            <CardContent className="px-4 pb-4 text-center">
+              <div className="text-3xl md:text-4xl font-bold text-purple-600 mb-1">
                 {purchaseOrderService.getByStatus('completed').length}
               </div>
-              <p className="text-[10px] text-muted-foreground">paid & closed</p>
+              <p className="text-xs md:text-sm text-muted-foreground">dibayar & ditutup</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Enhanced Purchase Orders List with Workflow */}
         <Card>
-          <CardHeader className="px-3 py-2 flex flex-row items-center justify-between">
+          <CardHeader className="px-4 py-3 flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-sm">Purchase Orders - Workflow Tracking</CardTitle>
-              <p className="text-[10px] text-muted-foreground mt-0.5">
-                PO → Supplier Accept → Proforma Invoice → Pengiriman → Receiving → QC → Invoice Final → Payment
+              <CardTitle className="text-base md:text-lg text-center md:text-left">
+                Purchase Orders - Pelacakan Workflow
+              </CardTitle>
+              <p className="text-xs md:text-sm text-muted-foreground mt-1 text-center md:text-left">
+                PO → Terima Supplier → Proforma Invoice → Pengiriman → Penerimaan → QC → Invoice Final → Pembayaran
               </p>
             </div>
             <Link href="/dashboard/procurement">
-              <Button size="sm" className="h-7 text-xs">View All</Button>
+              <Button size="sm" className="h-8 text-xs md:text-sm">Lihat Semua</Button>
             </Link>
           </CardHeader>
-          <CardContent className="px-3 pb-3">
+          <CardContent className="px-4 pb-4">
             <div className="space-y-3">
               {supplierPOs.length === 0 ? (
-                <p className="text-center text-sm text-muted-foreground py-8">Tidak ada PO</p>
+                <p className="text-center text-sm md:text-base text-muted-foreground py-12">
+                  Tidak ada Purchase Order
+                </p>
               ) : (
                 supplierPOs.map((po) => {
                   const workflow = workflowService.getByPO(po.id);
                   return (
-                    <div key={po.id} className="p-3 rounded-lg border hover:bg-accent/50 transition-colors space-y-2">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
-                        <div className="space-y-1 flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="text-xs font-medium">{po.poNumber}</p>
-                            <Badge variant="outline" className="text-[10px] py-0 h-4">
+                    <div key={po.id} className="p-4 rounded-lg border hover:bg-accent/50 transition-colors space-y-3">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                        <div className="space-y-2 flex-1 text-center md:text-left">
+                          <div className="flex items-center justify-center md:justify-start gap-2">
+                            <p className="text-sm md:text-base font-semibold">{po.poNumber}</p>
+                            <Badge variant="outline" className="text-xs py-0.5 h-5">
                               {po.status.replace('_', ' ')}
                             </Badge>
                           </div>
-                          <p className="text-[10px] text-muted-foreground">
-                            {po.supplierName} • {po.items.length} Items
+                          <p className="text-xs md:text-sm text-muted-foreground">
+                            {po.supplierName} • {po.items.length} Item
                           </p>
-                          <p className="text-xs font-semibold">{formatCurrency(po.totalAmount)}</p>
+                          <p className="text-sm md:text-base font-bold text-primary">{formatCurrency(po.totalAmount)}</p>
                         </div>
-                        <div className="flex flex-col items-end gap-1">
-                          <Badge variant="secondary" className="text-[10px] h-5">
-                            <ClipboardCheck className="h-2.5 w-2.5 mr-1" />
-                            {po.currentStep || 'Processing'}
+                        <div className="flex flex-col items-center md:items-end gap-2">
+                          <Badge variant="secondary" className="text-xs md:text-sm h-6 md:h-7 px-3">
+                            <ClipboardCheck className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1.5" />
+                            {po.currentStep || 'Diproses'}
                           </Badge>
                         </div>
                       </div>
                       
                       {/* Workflow Progress Bar */}
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between text-[10px]">
-                          <span className="text-muted-foreground">Workflow Progress</span>
-                          <span className="font-bold text-primary">{po.workflowProgress || 0}%</span>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs md:text-sm">
+                          <span className="text-muted-foreground font-medium">Progres Workflow</span>
+                          <span className="font-bold text-primary text-base md:text-lg">{po.workflowProgress || 0}%</span>
                         </div>
-                        <Progress value={po.workflowProgress || 0} className="h-1.5" />
+                        <Progress value={po.workflowProgress || 0} className="h-2 md:h-2.5" />
                       </div>
                     </div>
                   );
@@ -253,18 +263,20 @@ export default function DashboardPage() {
         </Card>
 
         {/* Enhanced Info Card */}
-        <Card className="bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
-          <CardContent className="p-3">
-            <div className="flex items-start gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shrink-0">
-                <ClipboardCheck className="h-4 w-4 text-white" />
+        <Card className="bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200 dark:from-purple-950/30 dark:to-blue-950/30">
+          <CardContent className="p-4 md:p-5">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4 text-center md:text-left">
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shrink-0 mx-auto md:mx-0">
+                <ClipboardCheck className="h-6 w-6 md:h-7 md:w-7 text-white" />
               </div>
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-purple-900">Enhanced Workflow Purchase Order</p>
-                <p className="text-[10px] text-purple-700 leading-relaxed">
-                  <strong>Alur Lengkap:</strong> PO → Supplier Accept → Proforma Invoice → Pengiriman Barang → 
-                  Receiving → Quality Control → Invoice Final → Payment. 
-                  Setiap step terintegrasi dan dapat dilacak secara real-time.
+              <div className="space-y-2 flex-1">
+                <p className="text-sm md:text-base font-bold text-purple-900 dark:text-purple-100">
+                  Enhanced Workflow Purchase Order
+                </p>
+                <p className="text-xs md:text-sm text-purple-700 dark:text-purple-300 leading-relaxed">
+                  <strong>Alur Lengkap:</strong> PO → Terima Supplier → Proforma Invoice → Pengiriman Barang → 
+                  Penerimaan → Quality Control → Invoice Final → Pembayaran. 
+                  Setiap tahapan terintegrasi dan dapat dilacak secara real-time untuk transparansi penuh.
                 </p>
               </div>
             </div>
