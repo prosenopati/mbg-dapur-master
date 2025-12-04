@@ -40,7 +40,9 @@ import {
   CheckCircle2,
   Trash2,
   AlertTriangle,
-  X } from
+  X,
+  ChevronDown,
+  ChevronUp } from
 "lucide-react";
 import { productionPlanService, wasteRecordService } from "@/lib/services/productionService";
 import { menuService } from "@/lib/services/menuService";
@@ -55,8 +57,7 @@ export default function ProductionPage() {
   const [wasteRecords, setWasteRecords] = useState<WasteRecord[]>([]);
   const [showPlanForm, setShowPlanForm] = useState(false);
   const [isWasteDialogOpen, setIsWasteDialogOpen] = useState(false);
-  const [viewingPlan, setViewingPlan] = useState<ProductionPlan | null>(null);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null);
 
   const menuItems = menuService.getAll();
   const inventoryItems = inventoryService.getAll();
@@ -260,6 +261,10 @@ export default function ProductionPage() {
       ...planFormData,
       materials: [...planFormData.materials, { inventoryItemId: "", requiredQuantity: 1 }]
     });
+  };
+
+  const togglePlanExpansion = (planId: string) => {
+    setExpandedPlanId(expandedPlanId === planId ? null : planId);
   };
 
   const getStatusBadge = (status: string) => {
@@ -692,59 +697,220 @@ export default function ProductionPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {productionPlans.length === 0 ?
-                  <TableRow>
+                  {productionPlans.length === 0 ? (
+                    <TableRow>
                       <TableCell colSpan={6} className="text-center py-8">
                         <p className="text-muted-foreground">Tidak ada rencana produksi</p>
                       </TableCell>
-                    </TableRow> :
-
-                  productionPlans.map((plan) =>
-                  <TableRow key={plan.id} className="hover:bg-muted/50 transition-colors">
-                        <TableCell className="font-medium">{plan.planNumber}</TableCell>
-                        <TableCell>{formatDate(plan.date)}</TableCell>
-                        <TableCell className="capitalize">
-                          {plan.shift === "morning" ? "Pagi" : plan.shift === "afternoon" ? "Siang" : "Malam"}
-                        </TableCell>
-                        <TableCell>{plan.outputs.length} item</TableCell>
-                        <TableCell>{getStatusBadge(plan.status)}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            setViewingPlan(plan);
-                            setIsViewDialogOpen(true);
-                          }}>
-
-                                <Eye className="h-4 w-4" />
+                    </TableRow>
+                  ) : (
+                    productionPlans.map((plan) => (
+                      <>
+                        <TableRow key={plan.id} className="hover:bg-muted/50 transition-colors">
+                          <TableCell className="font-medium">{plan.planNumber}</TableCell>
+                          <TableCell>{formatDate(plan.date)}</TableCell>
+                          <TableCell className="capitalize">
+                            {plan.shift === "morning" ? "Pagi" : plan.shift === "afternoon" ? "Siang" : "Malam"}
+                          </TableCell>
+                          <TableCell>{plan.outputs.length} item</TableCell>
+                          <TableCell>{getStatusBadge(plan.status)}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => togglePlanExpansion(plan.id)}
+                                title="Detail"
+                              >
+                                {expandedPlanId === plan.id ? (
+                                  <ChevronUp className="h-4 w-4" />
+                                ) : (
+                                  <Eye className="h-4 w-4" />
+                                )}
                               </Button>
-                              {plan.status === "planned" &&
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleStartProduction(plan.id)}>
-
+                              {plan.status === "planned" && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleStartProduction(plan.id)}
+                                >
                                   <Play className="mr-2 h-4 w-4" />
                                   Mulai
                                 </Button>
-                          }
-                              {plan.status === "in_progress" &&
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleCompleteProduction(plan.id)}>
-
+                              )}
+                              {plan.status === "in_progress" && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleCompleteProduction(plan.id)}
+                                >
                                   <CheckCircle2 className="mr-2 h-4 w-4" />
                                   Selesai
                                 </Button>
-                          }
+                              )}
                             </div>
                           </TableCell>
-                      </TableRow>
-                  )
-                  }
+                        </TableRow>
+                        
+                        {/* Inline Expanded Detail View */}
+                        {expandedPlanId === plan.id && (
+                          <TableRow>
+                            <TableCell colSpan={6} className="bg-muted/30 p-0">
+                              <div className="p-6 space-y-6 animate-in slide-in-from-top-2">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <h3 className="text-lg font-semibold">Detail Rencana Produksi</h3>
+                                    <p className="text-sm text-muted-foreground">{plan.planNumber}</p>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setExpandedPlanId(null)}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                  <Card>
+                                    <CardContent className="pt-6">
+                                      <p className="text-sm font-medium text-muted-foreground mb-1">Tanggal</p>
+                                      <p className="text-base font-semibold">{formatDate(plan.date)}</p>
+                                    </CardContent>
+                                  </Card>
+                                  <Card>
+                                    <CardContent className="pt-6">
+                                      <p className="text-sm font-medium text-muted-foreground mb-1">Shift</p>
+                                      <p className="text-base font-semibold capitalize">
+                                        {plan.shift === "morning" ? "Pagi" : plan.shift === "afternoon" ? "Siang" : "Malam"}
+                                      </p>
+                                    </CardContent>
+                                  </Card>
+                                  <Card>
+                                    <CardContent className="pt-6">
+                                      <p className="text-sm font-medium text-muted-foreground mb-1">Status</p>
+                                      <div className="mt-1">{getStatusBadge(plan.status)}</div>
+                                    </CardContent>
+                                  </Card>
+                                  <Card>
+                                    <CardContent className="pt-6">
+                                      <p className="text-sm font-medium text-muted-foreground mb-1">Direncanakan Oleh</p>
+                                      <p className="text-base font-semibold">{plan.plannedBy}</p>
+                                    </CardContent>
+                                  </Card>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  <Card className="border-primary/20">
+                                    <CardHeader>
+                                      <CardTitle className="text-base">Output Menu</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                      <div className="space-y-2">
+                                        {plan.outputs.map((output, index) => (
+                                          <div
+                                            key={index}
+                                            className="flex items-center justify-between p-3 bg-background border rounded-lg hover:shadow-sm transition-shadow"
+                                          >
+                                            <div className="flex items-center gap-3">
+                                              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
+                                                {index + 1}
+                                              </div>
+                                              <p className="font-medium">{output.menuItemName}</p>
+                                            </div>
+                                            <Badge variant="secondary" className="font-mono">
+                                              {output.plannedQuantity} porsi
+                                            </Badge>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+
+                                  <Card className="border-blue-500/20">
+                                    <CardHeader>
+                                      <CardTitle className="text-base">Bahan Baku Dibutuhkan</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                      <div className="space-y-2">
+                                        {plan.materials.map((material, index) => (
+                                          <div
+                                            key={index}
+                                            className="flex items-center justify-between p-3 bg-background border rounded-lg hover:shadow-sm transition-shadow"
+                                          >
+                                            <div className="flex items-center gap-3">
+                                              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500/10 text-blue-600 font-semibold text-sm">
+                                                {index + 1}
+                                              </div>
+                                              <p className="font-medium">{material.inventoryItemName}</p>
+                                            </div>
+                                            <Badge variant="outline" className="font-mono">
+                                              {material.requiredQuantity} {material.unit}
+                                            </Badge>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                </div>
+
+                                {plan.notes && (
+                                  <Card className="border-amber-500/20 bg-amber-50/50 dark:bg-amber-950/20">
+                                    <CardHeader>
+                                      <CardTitle className="text-base">Catatan</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                      <p className="text-sm leading-relaxed">{plan.notes}</p>
+                                    </CardContent>
+                                  </Card>
+                                )}
+
+                                <div className="flex items-center justify-between pt-4 border-t">
+                                  <p className="text-xs text-muted-foreground">
+                                    Dibuat pada {new Date(plan.createdAt).toLocaleString("id-ID", {
+                                      day: "numeric",
+                                      month: "long",
+                                      year: "numeric",
+                                      hour: "2-digit",
+                                      minute: "2-digit"
+                                    })}
+                                  </p>
+                                  <div className="flex gap-2">
+                                    {plan.status === "planned" && (
+                                      <Button
+                                        variant="default"
+                                        size="sm"
+                                        onClick={() => {
+                                          handleStartProduction(plan.id);
+                                          setExpandedPlanId(null);
+                                        }}
+                                      >
+                                        <Play className="mr-2 h-4 w-4" />
+                                        Mulai Produksi
+                                      </Button>
+                                    )}
+                                    {plan.status === "in_progress" && (
+                                      <Button
+                                        variant="default"
+                                        size="sm"
+                                        onClick={() => {
+                                          handleCompleteProduction(plan.id);
+                                          setExpandedPlanId(null);
+                                        }}
+                                      >
+                                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                                        Selesaikan Produksi
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </TabsContent>
@@ -794,73 +960,6 @@ export default function ProductionPage() {
           </Tabs>
         </CardContent>
       </Card>
-
-      {/* View Production Plan Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Detail Rencana Produksi</DialogTitle>
-            <DialogDescription>{viewingPlan?.planNumber}</DialogDescription>
-          </DialogHeader>
-          {viewingPlan &&
-          <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Tanggal</p>
-                  <p className="text-sm font-medium">{formatDate(viewingPlan.date)}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Shift</p>
-                  <p className="text-sm capitalize">
-                    {viewingPlan.shift === "morning" ? "Pagi" : viewingPlan.shift === "afternoon" ? "Siang" : "Malam"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Status</p>
-                  <div className="mt-1">{getStatusBadge(viewingPlan.status)}</div>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Direncanakan Oleh</p>
-                  <p className="text-sm">{viewingPlan.plannedBy}</p>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">Output Menu</p>
-                <div className="space-y-2">
-                  {viewingPlan.outputs.map((output, index) =>
-                <div key={index} className="flex justify-between p-3 border rounded-lg">
-                      <p className="font-medium">{output.menuItemName}</p>
-                      <p className="text-sm">Jumlah: {output.plannedQuantity}</p>
-                    </div>
-                )}
-                </div>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">Bahan Baku Dibutuhkan</p>
-                <div className="space-y-2">
-                  {viewingPlan.materials.map((material, index) =>
-                <div key={index} className="flex justify-between p-3 border rounded-lg">
-                      <p className="font-medium">{material.inventoryItemName}</p>
-                      <p className="text-sm">
-                        {material.requiredQuantity} {material.unit}
-                      </p>
-                    </div>
-                )}
-                </div>
-              </div>
-
-              {viewingPlan.notes &&
-            <div>
-                  <p className="text-sm font-medium text-muted-foreground">Catatan</p>
-                  <p className="text-sm mt-1">{viewingPlan.notes}</p>
-                </div>
-            }
-            </div>
-          }
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
