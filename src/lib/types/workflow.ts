@@ -1,7 +1,7 @@
 // Extended types for business workflow modules
 
 // ============================================
-// 1. PROCUREMENT / PURCHASE ORDER
+// 1. PROCUREMENT / PURCHASE ORDER - ENHANCED
 // ============================================
 export type POStatus = 
   | 'draft' 
@@ -10,8 +10,27 @@ export type POStatus =
   | 'sent' 
   | 'supplier_approved'
   | 'supplier_rejected'
+  | 'in_transit'
   | 'received' 
+  | 'qc_passed'
+  | 'qc_failed'
+  | 'completed'
   | 'cancelled';
+
+export type ShipmentStatus = 
+  | 'pending'
+  | 'packed'
+  | 'shipped'
+  | 'in_transit'
+  | 'delivered'
+  | 'failed';
+
+export type QCStatus = 
+  | 'pending'
+  | 'in_progress'
+  | 'passed'
+  | 'failed'
+  | 'partial';
 
 export interface PurchaseOrderItem {
   inventoryItemId: string;
@@ -44,15 +63,107 @@ export interface PurchaseOrder {
   supplierRejectionReason?: string;
   expectedDelivery?: string;
   
-  // Link to auto-generated invoice
-  invoiceId?: string;
+  // Enhanced workflow tracking
+  proformaInvoiceId?: string;
+  shipmentId?: string;
+  goodsReceiptId?: string;
+  qcReportId?: string;
+  finalInvoiceId?: string;
+  paymentId?: string;
+  
+  // Timeline tracking
+  workflowProgress?: number; // 0-100%
+  currentStep?: string;
   
   createdAt: string;
   updatedAt: string;
 }
 
 // ============================================
-// 2. INVOICE (Auto-generated from PO)
+// SHIPMENT TRACKING
+// ============================================
+export interface ShipmentTracking {
+  id: string;
+  shipmentNumber: string;
+  purchaseOrderId: string;
+  poNumber: string;
+  supplierId: string;
+  supplierName: string;
+  
+  status: ShipmentStatus;
+  trackingNumber?: string;
+  carrier?: string;
+  
+  packedAt?: string;
+  shippedAt?: string;
+  estimatedArrival?: string;
+  deliveredAt?: string;
+  
+  items: PurchaseOrderItem[];
+  notes?: string;
+  
+  // Tracking events
+  events: ShipmentEvent[];
+  
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ShipmentEvent {
+  timestamp: string;
+  status: string;
+  location?: string;
+  description: string;
+  recordedBy?: string;
+}
+
+// ============================================
+// QUALITY CONTROL
+// ============================================
+export interface QCReport {
+  id: string;
+  qcNumber: string;
+  purchaseOrderId: string;
+  poNumber: string;
+  goodsReceiptId: string;
+  grNumber: string;
+  
+  status: QCStatus;
+  overallResult: 'passed' | 'failed' | 'conditional';
+  
+  items: QCItem[];
+  
+  inspectedBy: string;
+  inspectedAt: string;
+  notes?: string;
+  
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface QCItem {
+  inventoryItemId: string;
+  inventoryItemName: string;
+  receivedQuantity: number;
+  acceptedQuantity: number;
+  rejectedQuantity: number;
+  unit: string;
+  
+  qualityChecks: QualityCheck[];
+  
+  result: 'passed' | 'failed' | 'conditional';
+  notes?: string;
+}
+
+export interface QualityCheck {
+  checkName: string;
+  criteria: string;
+  result: 'pass' | 'fail' | 'warning';
+  notes?: string;
+}
+
+// ============================================
+// 2. INVOICE (Auto-generated from PO) - ENHANCED
 // ============================================
 export type InvoiceStatus = 
   | 'pending' 
@@ -61,9 +172,14 @@ export type InvoiceStatus =
   | 'cancelled' 
   | 'overdue';
 
+export type InvoiceType = 
+  | 'proforma' // Generated when supplier accepts PO
+  | 'final';    // Generated after QC passes
+
 export interface Invoice {
   id: string;
   invoiceNumber: string;
+  invoiceType: InvoiceType;
   poId: string;
   poNumber: string;
   supplierId: string;
@@ -80,12 +196,39 @@ export interface Invoice {
   // Payment tracking
   paidAmount?: number;
   paidAt?: string;
-  paidBy?: string; // Finance user who processed
+  paidBy?: string;
   paymentMethod?: string;
   paymentReference?: string;
   
+  // Links
+  qcReportId?: string;
+  goodsReceiptId?: string;
+  
   notes?: string;
   createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================
+// WORKFLOW PROGRESS TRACKER
+// ============================================
+export interface WorkflowStep {
+  id: string;
+  name: string;
+  description: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'failed' | 'skipped';
+  completedAt?: string;
+  completedBy?: string;
+  notes?: string;
+}
+
+export interface POWorkflow {
+  purchaseOrderId: string;
+  steps: WorkflowStep[];
+  currentStepIndex: number;
+  overallProgress: number; // 0-100
+  startedAt: string;
+  completedAt?: string;
   updatedAt: string;
 }
 

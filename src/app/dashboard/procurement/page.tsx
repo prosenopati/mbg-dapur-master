@@ -49,18 +49,27 @@ import {
   XCircle,
   Trash2,
   X,
+  Truck,
+  PackageCheck,
+  ClipboardCheck,
 } from "lucide-react";
 import { purchaseOrderService } from "@/lib/services/purchaseOrderService";
 import { supplierService } from "@/lib/services/supplierService";
 import { inventoryService } from "@/lib/services/inventoryService";
+import { workflowService } from "@/lib/services/workflowService";
+import { invoiceService } from "@/lib/services/invoiceService";
 import { PurchaseOrder, POStatus } from "@/lib/types/workflow";
 import { toast } from "sonner";
+import { POWorkflowTracker } from "@/components/workflow/POWorkflowTracker";
 
 export default function ProcurementPage() {
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [viewingPO, setViewingPO] = useState<PurchaseOrder | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isSupplierActionDialogOpen, setIsSupplierActionDialogOpen] = useState(false);
+  const [supplierActionType, setSupplierActionType] = useState<'accept' | 'reject'>('accept');
+  const [rejectionReason, setRejectionReason] = useState('');
   const [activeTab, setActiveTab] = useState("all");
   
   const suppliers = supplierService.getActiveSuppliers();
@@ -118,7 +127,6 @@ export default function ProcurementPage() {
       return;
     }
 
-    // Create PO for each selected supplier
     formData.supplierIds.forEach(supplierId => {
       const supplier = suppliers.find(s => s.id === supplierId);
       if (!supplier) return;
@@ -138,7 +146,7 @@ export default function ProcurementPage() {
       });
 
       const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
-      const tax = subtotal * 0.1; // 10% tax
+      const tax = subtotal * 0.1;
       const totalAmount = subtotal + tax;
 
       purchaseOrderService.createPO({
@@ -177,6 +185,27 @@ export default function ProcurementPage() {
     loadPurchaseOrders();
   };
 
+  const handleSupplierAction = () => {
+    if (!viewingPO) return;
+
+    if (supplierActionType === 'accept') {
+      purchaseOrderService.supplierApprovePO(viewingPO.id, 'Supplier Staff');
+      toast.success("PO diterima! Proforma invoice otomatis dibuat.");
+    } else {
+      if (!rejectionReason.trim()) {
+        toast.error("Masukkan alasan penolakan");
+        return;
+      }
+      purchaseOrderService.supplierRejectPO(viewingPO.id, rejectionReason);
+      toast.info("PO ditolak");
+    }
+
+    setIsSupplierActionDialogOpen(false);
+    setRejectionReason('');
+    loadPurchaseOrders();
+    setIsViewDialogOpen(false);
+  };
+
   const addItem = () => {
     setFormData({
       ...formData,
@@ -205,7 +234,13 @@ export default function ProcurementPage() {
       pending_approval: { icon: Clock, variant: "secondary" as const, label: "Pending", color: "text-yellow-600" },
       approved: { icon: CheckCircle2, variant: "default" as const, label: "Approved", color: "text-green-600" },
       sent: { icon: Send, variant: "default" as const, label: "Sent", color: "text-blue-600" },
-      received: { icon: CheckCircle2, variant: "default" as const, label: "Received", color: "text-green-700" },
+      supplier_approved: { icon: CheckCircle2, variant: "default" as const, label: "Supplier Approved", color: "text-green-700" },
+      supplier_rejected: { icon: XCircle, variant: "destructive" as const, label: "Rejected", color: "text-red-600" },
+      in_transit: { icon: Truck, variant: "secondary" as const, label: "In Transit", color: "text-blue-600" },
+      received: { icon: PackageCheck, variant: "default" as const, label: "Received", color: "text-green-600" },
+      qc_passed: { icon: ClipboardCheck, variant: "default" as const, label: "QC Passed", color: "text-green-700" },
+      qc_failed: { icon: XCircle, variant: "destructive" as const, label: "QC Failed", color: "text-red-600" },
+      completed: { icon: CheckCircle2, variant: "default" as const, label: "Completed", color: "text-green-800" },
       cancelled: { icon: XCircle, variant: "destructive" as const, label: "Cancelled", color: "text-red-600" },
     };
 
@@ -247,6 +282,8 @@ export default function ProcurementPage() {
     pending_approval: purchaseOrders.filter(p => p.status === "pending_approval").length,
     approved: purchaseOrders.filter(p => p.status === "approved").length,
     sent: purchaseOrders.filter(p => p.status === "sent").length,
+    in_transit: purchaseOrders.filter(p => p.status === "in_transit").length,
+    completed: purchaseOrders.filter(p => p.status === "completed").length,
   };
 
   return (
@@ -256,7 +293,7 @@ export default function ProcurementPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Procurement / Purchase Order</h1>
           <p className="text-muted-foreground">
-            Kelola pembelian bahan baku dari supplier
+            Enhanced Workflow: PO → Supplier Accept → Proforma Invoice → Pengiriman → Receiving → QC → Invoice Final → Payment
           </p>
         </div>
         <Button onClick={() => setIsFormOpen(!isFormOpen)}>
@@ -510,8 +547,8 @@ export default function ProcurementPage() {
         </Card>
       )}
 
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-5">
+      {/* Stats - Enhanced with more statuses */}
+      <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-7">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total PO</CardTitle>
@@ -552,6 +589,22 @@ export default function ProcurementPage() {
             <div className="text-2xl font-bold text-blue-600">{stats.sent}</div>
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">In Transit</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-700">{stats.in_transit}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Completed</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-800">{stats.completed}</div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* PO Table */}
@@ -561,13 +614,15 @@ export default function ProcurementPage() {
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-8">
               <TabsTrigger value="all">All ({stats.all})</TabsTrigger>
               <TabsTrigger value="draft">Draft ({stats.draft})</TabsTrigger>
               <TabsTrigger value="pending_approval">Pending ({stats.pending_approval})</TabsTrigger>
               <TabsTrigger value="approved">Approved ({stats.approved})</TabsTrigger>
               <TabsTrigger value="sent">Sent ({stats.sent})</TabsTrigger>
+              <TabsTrigger value="in_transit">Transit ({stats.in_transit})</TabsTrigger>
               <TabsTrigger value="received">Received</TabsTrigger>
+              <TabsTrigger value="completed">Completed ({stats.completed})</TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-4">
@@ -579,6 +634,7 @@ export default function ProcurementPage() {
                     <TableHead>Items</TableHead>
                     <TableHead>Total</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Progress</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -586,7 +642,7 @@ export default function ProcurementPage() {
                 <TableBody>
                   {filteredPOs.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
+                      <TableCell colSpan={8} className="text-center py-8">
                         <p className="text-muted-foreground">Tidak ada PO</p>
                       </TableCell>
                     </TableRow>
@@ -600,6 +656,21 @@ export default function ProcurementPage() {
                           {formatCurrency(po.totalAmount)}
                         </TableCell>
                         <TableCell>{getStatusBadge(po.status)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1">
+                              <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-primary transition-all"
+                                  style={{ width: `${po.workflowProgress || 0}%` }}
+                                />
+                              </div>
+                            </div>
+                            <span className="text-xs font-medium text-muted-foreground w-10">
+                              {po.workflowProgress || 0}%
+                            </span>
+                          </div>
+                        </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {formatDate(po.createdAt)}
                         </TableCell>
@@ -657,15 +728,16 @@ export default function ProcurementPage() {
         </CardContent>
       </Card>
 
-      {/* View PO Dialog */}
+      {/* View PO Dialog - Enhanced with Workflow */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Purchase Order Detail</DialogTitle>
+            <DialogTitle>Purchase Order Detail - Enhanced Workflow</DialogTitle>
             <DialogDescription>{viewingPO?.poNumber}</DialogDescription>
           </DialogHeader>
           {viewingPO && (
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* PO Basic Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Supplier</p>
@@ -687,6 +759,39 @@ export default function ProcurementPage() {
                 )}
               </div>
 
+              {/* Workflow Tracker */}
+              {workflowService.getByPO(viewingPO.id) && (
+                <POWorkflowTracker workflow={workflowService.getByPO(viewingPO.id)!} />
+              )}
+
+              {/* Action Buttons Based on Status */}
+              {viewingPO.status === 'sent' && (
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => {
+                      setSupplierActionType('accept');
+                      setIsSupplierActionDialogOpen(true);
+                    }}
+                    className="flex-1"
+                  >
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Supplier Accept PO
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      setSupplierActionType('reject');
+                      setIsSupplierActionDialogOpen(true);
+                    }}
+                    className="flex-1"
+                  >
+                    <XCircle className="mr-2 h-4 w-4" />
+                    Supplier Reject PO
+                  </Button>
+                </div>
+              )}
+
+              {/* Items */}
               <div>
                 <p className="text-sm font-medium text-muted-foreground mb-2">Items</p>
                 <div className="space-y-2">
@@ -716,6 +821,7 @@ export default function ProcurementPage() {
                 </div>
               )}
 
+              {/* Total */}
               <div className="space-y-2 pt-4 border-t">
                 <div className="flex justify-between text-sm">
                   <span>Subtotal:</span>
@@ -738,6 +844,45 @@ export default function ProcurementPage() {
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Supplier Action Dialog */}
+      <Dialog open={isSupplierActionDialogOpen} onOpenChange={setIsSupplierActionDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {supplierActionType === 'accept' ? 'Accept Purchase Order' : 'Reject Purchase Order'}
+            </DialogTitle>
+            <DialogDescription>
+              {supplierActionType === 'accept' 
+                ? 'Dengan menerima PO ini, proforma invoice akan otomatis dibuat.' 
+                : 'Masukkan alasan penolakan PO ini.'}
+            </DialogDescription>
+          </DialogHeader>
+          {supplierActionType === 'reject' && (
+            <div className="space-y-2">
+              <Label htmlFor="rejection-reason">Alasan Penolakan *</Label>
+              <Textarea
+                id="rejection-reason"
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Contoh: Harga tidak sesuai, stok tidak tersedia, dll..."
+                rows={4}
+              />
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsSupplierActionDialogOpen(false)}>
+              Batal
+            </Button>
+            <Button 
+              onClick={handleSupplierAction}
+              variant={supplierActionType === 'accept' ? 'default' : 'destructive'}
+            >
+              {supplierActionType === 'accept' ? 'Accept PO' : 'Reject PO'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

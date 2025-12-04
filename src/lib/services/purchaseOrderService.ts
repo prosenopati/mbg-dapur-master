@@ -2,6 +2,7 @@ import { PurchaseOrder, POStatus } from '../types/workflow';
 import { StorageService } from './storage';
 import { notificationService } from './notificationService';
 import { invoiceService } from './invoiceService';
+import { workflowService } from './workflowService';
 
 class PurchaseOrderService extends StorageService<PurchaseOrder> {
   constructor() {
@@ -50,24 +51,35 @@ class PurchaseOrderService extends StorageService<PurchaseOrder> {
         approvedBy: 'Manager',
         approvedAt: new Date().toISOString(),
         expectedDelivery: new Date(Date.now() + 3 * 86400000).toISOString(),
+        workflowProgress: 30,
+        currentStep: 'Menunggu Supplier Accept',
         createdAt: new Date(Date.now() - 86400000).toISOString(),
         updatedAt: new Date().toISOString(),
       };
 
       this.create(samplePO);
+      workflowService.initializeWorkflow(samplePO.id);
     }
   }
 
-  createPO(data: Omit<PurchaseOrder, 'id' | 'poNumber' | 'createdAt' | 'updatedAt'>): PurchaseOrder {
+  createPO(data: Omit<PurchaseOrder, 'id' | 'poNumber' | 'createdAt' | 'updatedAt' | 'workflowProgress' | 'currentStep'>): PurchaseOrder {
     const poNumber = this.generatePONumber();
     const po: PurchaseOrder = {
       ...data,
       id: Date.now().toString(),
       poNumber,
+      workflowProgress: 10,
+      currentStep: 'Draft',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    return this.create(po);
+    
+    const created = this.create(po);
+    
+    // Initialize workflow
+    workflowService.initializeWorkflow(created.id);
+    
+    return created;
   }
 
   updateStatus(id: string, status: POStatus, metadata?: { approvedBy?: string; sentAt?: string }): PurchaseOrder | null {
@@ -76,13 +88,29 @@ class PurchaseOrderService extends StorageService<PurchaseOrder> {
 
     const updates: Partial<PurchaseOrder> = { status };
 
+    // Update workflow based on status
+    if (status === 'pending_approval') {
+      updates.workflowProgress = 20;
+      updates.currentStep = 'Menunggu Approval';
+      workflowService.updateStep(id, 'draft', 'completed');
+      workflowService.updateStep(id, 'approval', 'in_progress');
+    }
+
     if (status === 'approved' && metadata?.approvedBy) {
       updates.approvedBy = metadata.approvedBy;
       updates.approvedAt = new Date().toISOString();
+      updates.workflowProgress = 30;
+      updates.currentStep = 'Approved - Siap Kirim';
+      workflowService.updateStep(id, 'approval', 'completed', { completedBy: metadata.approvedBy });
     }
 
     if (status === 'sent') {
       updates.sentAt = metadata?.sentAt || new Date().toISOString();
+      updates.workflowProgress = 40;
+      updates.currentStep = 'Menunggu Supplier Accept';
+      
+      workflowService.updateStep(id, 'sent_to_supplier', 'completed');
+      workflowService.updateStep(id, 'supplier_accept', 'in_progress');
       
       // Send notification to supplier
       notificationService.notifyPOSentToSupplier(
@@ -92,10 +120,44 @@ class PurchaseOrderService extends StorageService<PurchaseOrder> {
       );
     }
 
+    if (status === 'supplier_approved') {
+      updates.workflowProgress = 50;
+      updates.currentStep = 'Proforma Invoice';
+      workflowService.updateStep(id, 'supplier_accept', 'completed');
+      workflowService.updateStep(id, 'proforma_invoice', 'completed');
+    }
+
+    if (status === 'in_transit') {
+      updates.workflowProgress = 60;
+      updates.currentStep = 'Dalam Pengiriman';
+      workflowService.updateStep(id, 'shipment', 'in_progress');
+    }
+
+    if (status === 'received') {
+      updates.workflowProgress = 70;
+      updates.currentStep = 'Barang Diterima - QC';
+      workflowService.updateStep(id, 'shipment', 'completed');
+      workflowService.updateStep(id, 'receiving', 'completed');
+      workflowService.updateStep(id, 'qc', 'in_progress');
+    }
+
+    if (status === 'qc_passed') {
+      updates.workflowProgress = 80;
+      updates.currentStep = 'QC Pass - Invoice Final';
+      workflowService.updateStep(id, 'qc', 'completed');
+      workflowService.updateStep(id, 'final_invoice', 'in_progress');
+    }
+
+    if (status === 'completed') {
+      updates.workflowProgress = 100;
+      updates.currentStep = 'Completed';
+      workflowService.updateStep(id, 'payment', 'completed');
+    }
+
     return this.update(id, updates);
   }
 
-  // Supplier approves PO - triggers invoice generation
+  // Supplier approves PO - triggers proforma invoice generation
   supplierApprovePO(id: string, approvedBy: string): { po: PurchaseOrder; invoice: any } | null {
     const po = this.getById(id);
     if (!po) return null;
@@ -104,10 +166,17 @@ class PurchaseOrderService extends StorageService<PurchaseOrder> {
       status: 'supplier_approved',
       supplierApprovedAt: new Date().toISOString(),
       supplierApprovedBy: approvedBy,
+      workflowProgress: 50,
+      currentStep: 'Proforma Invoice Dibuat',
     };
 
     const updatedPO = this.update(id, updates);
     if (!updatedPO) return null;
+
+    // Update workflow
+    workflowService.updateStep(id, 'supplier_accept', 'completed', { completedBy: approvedBy });
+    workflowService.updateStep(id, 'proforma_invoice', 'completed');
+    workflowService.updateStep(id, 'shipment', 'in_progress');
 
     // Notify manager
     notificationService.notifyPOApprovedBySupplier(
@@ -116,11 +185,11 @@ class PurchaseOrderService extends StorageService<PurchaseOrder> {
       po.supplierName
     );
 
-    // Auto-generate invoice
-    const invoice = invoiceService.generateFromPO(updatedPO);
+    // Auto-generate proforma invoice
+    const invoice = invoiceService.generateFromPO(updatedPO, 'proforma');
     
     // Link invoice to PO
-    this.update(id, { invoiceId: invoice.id });
+    this.update(id, { proformaInvoiceId: invoice.id });
 
     // Notify finance about new invoice
     notificationService.notifyInvoiceGenerated(
@@ -142,10 +211,14 @@ class PurchaseOrderService extends StorageService<PurchaseOrder> {
       status: 'supplier_rejected',
       supplierRejectedAt: new Date().toISOString(),
       supplierRejectionReason: reason,
+      currentStep: 'Rejected by Supplier',
     };
 
     const updatedPO = this.update(id, updates);
     if (!updatedPO) return null;
+
+    // Update workflow
+    workflowService.updateStep(id, 'supplier_accept', 'failed', { notes: reason });
 
     // Notify manager
     notificationService.notifyPORejectedBySupplier(

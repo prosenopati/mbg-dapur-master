@@ -1,4 +1,4 @@
-import { Invoice, InvoiceStatus, PurchaseOrder } from "@/lib/types/workflow";
+import { Invoice, InvoiceStatus, InvoiceType, PurchaseOrder } from "@/lib/types/workflow";
 
 const STORAGE_KEY = "mbg_invoices";
 
@@ -12,14 +12,15 @@ function saveInvoices(invoices: Invoice[]): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(invoices));
 }
 
-function generateInvoiceNumber(): string {
+function generateInvoiceNumber(type: InvoiceType): string {
   const invoices = getInvoices();
   const year = new Date().getFullYear();
   const month = String(new Date().getMonth() + 1).padStart(2, "0");
+  const prefix = type === 'proforma' ? 'PRO-INV' : 'INV';
   const count = invoices.filter((inv) =>
-    inv.invoiceNumber.startsWith(`INV/${year}.${month}`)
+    inv.invoiceNumber.startsWith(`${prefix}/${year}.${month}`)
   ).length;
-  return `INV/${year}.${month}/${String(count + 1).padStart(4, "0")}`;
+  return `${prefix}/${year}.${month}/${String(count + 1).padStart(4, "0")}`;
 }
 
 export const invoiceService = {
@@ -33,8 +34,8 @@ export const invoiceService = {
     return getInvoices().find((inv) => inv.id === id);
   },
 
-  getByPOId(poId: string): Invoice | undefined {
-    return getInvoices().find((inv) => inv.poId === poId);
+  getByPOId(poId: string): Invoice[] {
+    return getInvoices().filter((inv) => inv.poId === poId);
   },
 
   getBySupplierId(supplierId: string): Invoice[] {
@@ -45,19 +46,24 @@ export const invoiceService = {
     return getInvoices().filter((inv) => inv.status === status);
   },
 
+  getByType(type: InvoiceType): Invoice[] {
+    return getInvoices().filter((inv) => inv.invoiceType === type);
+  },
+
   getPendingInvoices(): Invoice[] {
     return getInvoices().filter((inv) => inv.status === "pending");
   },
 
-  // Auto-generate invoice from approved PO
-  generateFromPO(po: PurchaseOrder): Invoice {
+  // Auto-generate invoice from PO (proforma or final)
+  generateFromPO(po: PurchaseOrder, type: InvoiceType = 'proforma'): Invoice {
     const now = new Date().toISOString();
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 30); // Default 30 days payment term
 
     const invoice: Invoice = {
       id: `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      invoiceNumber: generateInvoiceNumber(),
+      invoiceNumber: generateInvoiceNumber(type),
+      invoiceType: type,
       poId: po.id,
       poNumber: po.poNumber,
       supplierId: po.supplierId,
@@ -69,7 +75,9 @@ export const invoiceService = {
       status: "pending",
       dueDate: dueDate.toISOString(),
       issuedDate: now,
-      notes: `Invoice otomatis dari PO ${po.poNumber}`,
+      notes: type === 'proforma' 
+        ? `Proforma Invoice otomatis dari PO ${po.poNumber}` 
+        : `Final Invoice dari PO ${po.poNumber} setelah QC passed`,
       createdAt: now,
       updatedAt: now,
     };

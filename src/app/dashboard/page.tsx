@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import {
   DollarSign,
   ShoppingCart,
@@ -17,6 +18,7 @@ import {
   Truck,
   FileText,
   Calendar,
+  ClipboardCheck,
 } from "lucide-react";
 import { dashboardService } from "@/lib/services/dashboardService";
 import { DashboardMetrics } from "@/lib/types";
@@ -24,6 +26,8 @@ import { cn } from "@/lib/utils";
 import { getUserRole, type UserRole } from "@/lib/rbac";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { purchaseOrderService } from "@/lib/services/purchaseOrderService";
+import { workflowService } from "@/lib/services/workflowService";
 
 export default function DashboardPage() {
   const [metrics, setMetrics] = useState<DashboardMetrics>({
@@ -39,8 +43,8 @@ export default function DashboardPage() {
   const [userRole, setUserRole] = useState<UserRole>("Admin");
   
   // Mock data for weekly and monthly revenue
-  const weeklyRevenue = metrics.totalRevenue * 6.5; // ~6.5 days average
-  const monthlyRevenue = metrics.totalRevenue * 28; // ~28 days average
+  const weeklyRevenue = metrics.totalRevenue * 6.5;
+  const monthlyRevenue = metrics.totalRevenue * 28;
 
   useEffect(() => {
     const loadData = () => {
@@ -105,8 +109,12 @@ export default function DashboardPage() {
     );
   }
 
-  // Supplier Dashboard View
+  // Supplier Dashboard View - ENHANCED WITH WORKFLOW
   if (userRole === "Supplier") {
+    const supplierPOs = purchaseOrderService.getAll()
+      .filter(po => po.status !== 'draft' && po.status !== 'pending_approval')
+      .slice(0, 5);
+
     return (
       <div className="space-y-3 md:space-y-4">
         {/* Header */}
@@ -117,7 +125,7 @@ export default function DashboardPage() {
               Supplier Dashboard
             </h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Kelola Purchase Orders dan Pengiriman
+              Kelola Purchase Orders dan Pengiriman - Enhanced Workflow
             </p>
           </div>
         </div>
@@ -132,7 +140,9 @@ export default function DashboardPage() {
               </div>
             </CardHeader>
             <CardContent className="px-2.5 pb-2">
-              <div className="text-xl font-bold text-yellow-600">3</div>
+              <div className="text-xl font-bold text-yellow-600">
+                {purchaseOrderService.getByStatus('sent').length}
+              </div>
               <p className="text-[10px] text-muted-foreground">need approval</p>
             </CardContent>
           </Card>
@@ -145,7 +155,9 @@ export default function DashboardPage() {
               </div>
             </CardHeader>
             <CardContent className="px-2.5 pb-2">
-              <div className="text-xl font-bold text-green-600">12</div>
+              <div className="text-xl font-bold text-green-600">
+                {purchaseOrderService.getByStatus('supplier_approved').length}
+              </div>
               <p className="text-[10px] text-muted-foreground">this month</p>
             </CardContent>
           </Card>
@@ -158,7 +170,9 @@ export default function DashboardPage() {
               </div>
             </CardHeader>
             <CardContent className="px-2.5 pb-2">
-              <div className="text-xl font-bold text-blue-600">5</div>
+              <div className="text-xl font-bold text-blue-600">
+                {purchaseOrderService.getByStatus('in_transit').length}
+              </div>
               <p className="text-[10px] text-muted-foreground">on delivery</p>
             </CardContent>
           </Card>
@@ -166,125 +180,91 @@ export default function DashboardPage() {
           <Card>
             <CardHeader className="pb-1 px-2.5 pt-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-[10px] font-medium text-muted-foreground">Invoices</CardTitle>
+                <CardTitle className="text-[10px] font-medium text-muted-foreground">Completed</CardTitle>
                 <FileText className="h-3.5 w-3.5 text-purple-600" />
               </div>
             </CardHeader>
             <CardContent className="px-2.5 pb-2">
-              <div className="text-xl font-bold text-purple-600">8</div>
-              <p className="text-[10px] text-muted-foreground">awaiting payment</p>
+              <div className="text-xl font-bold text-purple-600">
+                {purchaseOrderService.getByStatus('completed').length}
+              </div>
+              <p className="text-[10px] text-muted-foreground">paid & closed</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Purchase Orders List - Compact */}
+        {/* Enhanced Purchase Orders List with Workflow */}
         <Card>
           <CardHeader className="px-3 py-2 flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-sm">Purchase Orders</CardTitle>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Daftar PO yang perlu diproses</p>
+              <CardTitle className="text-sm">Purchase Orders - Workflow Tracking</CardTitle>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                PO → Supplier Accept → Proforma Invoice → Pengiriman → Receiving → QC → Invoice Final → Payment
+              </p>
             </div>
             <Link href="/dashboard/procurement">
               <Button size="sm" className="h-7 text-xs">View All</Button>
             </Link>
           </CardHeader>
           <CardContent className="px-3 pb-3">
-            <div className="space-y-2">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 p-2 rounded-lg border hover:bg-accent/50 transition-colors">
-                <div className="space-y-0.5 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="text-xs font-medium">PO-2024-001</p>
-                    <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 text-[10px] py-0 h-4">
-                      Pending
-                    </Badge>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground">Dapur MBG Pusat • 15 Items</p>
-                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                    <span className="flex items-center gap-0.5">
-                      <Calendar className="h-2.5 w-2.5" />
-                      20 Nov 2024
-                    </span>
-                    <span className="flex items-center gap-0.5">
-                      <Truck className="h-2.5 w-2.5" />
-                      Est: 22 Nov
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-xs font-semibold">{formatCurrency(15500000)}</p>
-                  <Button size="sm" variant="outline" className="h-6 text-xs px-2">Review</Button>
-                </div>
-              </div>
-
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 p-2 rounded-lg border hover:bg-accent/50 transition-colors">
-                <div className="space-y-0.5 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="text-xs font-medium">PO-2024-002</p>
-                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] py-0 h-4">
-                      In Transit
-                    </Badge>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground">Dapur MBG Cabang A • 22 Items</p>
-                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                    <span className="flex items-center gap-0.5">
-                      <Calendar className="h-2.5 w-2.5" />
-                      18 Nov 2024
-                    </span>
-                    <span className="flex items-center gap-0.5">
-                      <Truck className="h-2.5 w-2.5" />
-                      Est: 21 Nov
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-xs font-semibold">{formatCurrency(23750000)}</p>
-                  <Button size="sm" variant="outline" className="h-6 text-xs px-2">Track</Button>
-                </div>
-              </div>
-
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 p-2 rounded-lg border hover:bg-accent/50 transition-colors">
-                <div className="space-y-0.5 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="text-xs font-medium">PO-2024-003</p>
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-[10px] py-0 h-4">
-                      Delivered
-                    </Badge>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground">Dapur MBG Cabang B • 18 Items</p>
-                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                    <span className="flex items-center gap-0.5">
-                      <Calendar className="h-2.5 w-2.5" />
-                      15 Nov 2024
-                    </span>
-                    <span className="flex items-center gap-0.5">
-                      <CheckCircle2 className="h-2.5 w-2.5" />
-                      19 Nov 2024
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="text-right">
-                    <p className="text-xs font-semibold">{formatCurrency(18900000)}</p>
-                    <p className="text-[10px] text-green-600">Invoice sent</p>
-                  </div>
-                  <Button size="sm" variant="outline" className="h-6 text-xs px-2">View</Button>
-                </div>
-              </div>
+            <div className="space-y-3">
+              {supplierPOs.length === 0 ? (
+                <p className="text-center text-sm text-muted-foreground py-8">Tidak ada PO</p>
+              ) : (
+                supplierPOs.map((po) => {
+                  const workflow = workflowService.getByPO(po.id);
+                  return (
+                    <div key={po.id} className="p-3 rounded-lg border hover:bg-accent/50 transition-colors space-y-2">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                        <div className="space-y-1 flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="text-xs font-medium">{po.poNumber}</p>
+                            <Badge variant="outline" className="text-[10px] py-0 h-4">
+                              {po.status.replace('_', ' ')}
+                            </Badge>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">
+                            {po.supplierName} • {po.items.length} Items
+                          </p>
+                          <p className="text-xs font-semibold">{formatCurrency(po.totalAmount)}</p>
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <Badge variant="secondary" className="text-[10px] h-5">
+                            <ClipboardCheck className="h-2.5 w-2.5 mr-1" />
+                            {po.currentStep || 'Processing'}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      {/* Workflow Progress Bar */}
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="text-muted-foreground">Workflow Progress</span>
+                          <span className="font-bold text-primary">{po.workflowProgress || 0}%</span>
+                        </div>
+                        <Progress value={po.workflowProgress || 0} className="h-1.5" />
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Info Card - Compact */}
-        <Card className="bg-purple-50 border-purple-200">
+        {/* Enhanced Info Card */}
+        <Card className="bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
           <CardContent className="p-3">
             <div className="flex items-start gap-2">
-              <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
-                <FileText className="h-4 w-4 text-purple-600" />
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shrink-0">
+                <ClipboardCheck className="h-4 w-4 text-white" />
               </div>
-              <div className="space-y-0.5">
-                <p className="text-xs font-medium text-purple-900">Workflow Purchase Order</p>
-                <p className="text-[10px] text-purple-700">
-                  Setelah Anda menyetujui PO, invoice akan otomatis dibuat dan dikirim ke bagian Keuangan untuk proses pembayaran.
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-purple-900">Enhanced Workflow Purchase Order</p>
+                <p className="text-[10px] text-purple-700 leading-relaxed">
+                  <strong>Alur Lengkap:</strong> PO → Supplier Accept → Proforma Invoice → Pengiriman Barang → 
+                  Receiving → Quality Control → Invoice Final → Payment. 
+                  Setiap step terintegrasi dan dapat dilacak secara real-time.
                 </p>
               </div>
             </div>
@@ -305,7 +285,7 @@ export default function DashboardPage() {
       <div>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          MBG Dapur Management System
+          MBG Dapur Management System - Enhanced Procurement Workflow
         </p>
       </div>
 
