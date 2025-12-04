@@ -324,81 +324,83 @@ export default function ProductionPage() {
                 <AlertTriangle className="mr-2 h-4 w-4" />Catat Waste
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>Catat Waste</DialogTitle>
+                <DialogTitle>Catat Waste ( Sisa Limbah )</DialogTitle>
                 <DialogDescription>
                   Catat bahan yang terbuang atau rusak
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleWasteSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="waste-item">Bahan *</Label>
-                  <Select
-                    value={wasteFormData.inventoryItemId}
-                    onValueChange={(value) =>
-                    setWasteFormData({ ...wasteFormData, inventoryItemId: value })
-                    }>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="waste-item">Bahan *</Label>
+                    <Select
+                      value={wasteFormData.inventoryItemId}
+                      onValueChange={(value) =>
+                      setWasteFormData({ ...wasteFormData, inventoryItemId: value })
+                      }>
 
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih bahan" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {inventoryItems.map((item) =>
-                      <SelectItem key={item.id} value={item.id}>
-                          {item.name} ({item.unit})
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih bahan" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {inventoryItems.map((item) =>
+                        <SelectItem key={item.id} value={item.id}>
+                            {item.name} ({item.unit})
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="waste-quantity">Jumlah *</Label>
-                  <Input
-                    id="waste-quantity"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={wasteFormData.quantity}
-                    onChange={(e) =>
-                    setWasteFormData({ ...wasteFormData, quantity: parseFloat(e.target.value) })
-                    }
-                    required />
+                  <div className="space-y-2">
+                    <Label htmlFor="waste-reason">Alasan *</Label>
+                    <Select
+                      value={wasteFormData.reason}
+                      onValueChange={(value: any) =>
+                      setWasteFormData({ ...wasteFormData, reason: value })
+                      }>
 
-                </div>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="expired">Kadaluarsa</SelectItem>
+                        <SelectItem value="damaged">Rusak</SelectItem>
+                        <SelectItem value="spoiled">Busuk</SelectItem>
+                        <SelectItem value="overproduction">Produksi Berlebih</SelectItem>
+                        <SelectItem value="other">Lainnya</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="waste-reason">Alasan *</Label>
-                  <Select
-                    value={wasteFormData.reason}
-                    onValueChange={(value: any) =>
-                    setWasteFormData({ ...wasteFormData, reason: value })
-                    }>
+                  <div className="space-y-2">
+                    <Label htmlFor="waste-quantity">Jumlah *</Label>
+                    <Input
+                      id="waste-quantity"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={wasteFormData.quantity}
+                      onChange={(e) =>
+                      setWasteFormData({ ...wasteFormData, quantity: parseFloat(e.target.value) })
+                      }
+                      required />
 
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="expired">Kadaluarsa</SelectItem>
-                      <SelectItem value="damaged">Rusak</SelectItem>
-                      <SelectItem value="spoiled">Busuk</SelectItem>
-                      <SelectItem value="overproduction">Produksi Berlebih</SelectItem>
-                      <SelectItem value="other">Lainnya</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="waste-notes">Catatan</Label>
-                  <Textarea
-                    id="waste-notes"
-                    value={wasteFormData.notes}
-                    onChange={(e) =>
-                    setWasteFormData({ ...wasteFormData, notes: e.target.value })
-                    }
-                    rows={2} />
+                  <div className="space-y-2">
+                    <Label htmlFor="waste-notes">Catatan</Label>
+                    <Textarea
+                      id="waste-notes"
+                      value={wasteFormData.notes}
+                      onChange={(e) =>
+                      setWasteFormData({ ...wasteFormData, notes: e.target.value })
+                      }
+                      rows={2} />
 
+                  </div>
                 </div>
 
                 <DialogFooter>
