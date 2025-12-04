@@ -34,6 +34,12 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
   Plus,
   Eye,
   CheckCircle2,
@@ -42,6 +48,7 @@ import {
   Clock,
   XCircle,
   Trash2,
+  X,
 } from "lucide-react";
 import { purchaseOrderService } from "@/lib/services/purchaseOrderService";
 import { supplierService } from "@/lib/services/supplierService";
@@ -51,7 +58,7 @@ import { toast } from "sonner";
 
 export default function ProcurementPage() {
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [viewingPO, setViewingPO] = useState<PurchaseOrder | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
@@ -60,7 +67,7 @@ export default function ProcurementPage() {
   const inventoryItems = inventoryService.getAll();
 
   const [formData, setFormData] = useState({
-    supplierId: "",
+    supplierIds: [] as string[],
     expectedDelivery: "",
     notes: "",
     requestedBy: "Admin",
@@ -81,12 +88,21 @@ export default function ProcurementPage() {
 
   const resetForm = () => {
     setFormData({
-      supplierId: "",
+      supplierIds: [],
       expectedDelivery: "",
       notes: "",
       requestedBy: "Admin",
       items: [],
     });
+  };
+
+  const toggleSupplier = (supplierId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      supplierIds: prev.supplierIds.includes(supplierId)
+        ? prev.supplierIds.filter(id => id !== supplierId)
+        : [...prev.supplierIds, supplierId]
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -97,48 +113,51 @@ export default function ProcurementPage() {
       return;
     }
 
-    if (!formData.supplierId) {
-      toast.error("Pilih supplier");
+    if (formData.supplierIds.length === 0) {
+      toast.error("Pilih minimal satu supplier");
       return;
     }
 
-    const supplier = suppliers.find(s => s.id === formData.supplierId);
-    if (!supplier) return;
+    // Create PO for each selected supplier
+    formData.supplierIds.forEach(supplierId => {
+      const supplier = suppliers.find(s => s.id === supplierId);
+      if (!supplier) return;
 
-    const items = formData.items.map(item => {
-      const inventoryItem = inventoryItems.find(i => i.id === item.inventoryItemId);
-      const totalPrice = item.quantity * item.unitPrice;
-      return {
-        inventoryItemId: item.inventoryItemId,
-        inventoryItemName: inventoryItem?.name || "",
-        quantity: item.quantity,
-        unit: inventoryItem?.unit || "",
-        unitPrice: item.unitPrice,
-        totalPrice,
-        notes: item.notes,
-      };
+      const items = formData.items.map(item => {
+        const inventoryItem = inventoryItems.find(i => i.id === item.inventoryItemId);
+        const totalPrice = item.quantity * item.unitPrice;
+        return {
+          inventoryItemId: item.inventoryItemId,
+          inventoryItemName: inventoryItem?.name || "",
+          quantity: item.quantity,
+          unit: inventoryItem?.unit || "",
+          unitPrice: item.unitPrice,
+          totalPrice,
+          notes: item.notes,
+        };
+      });
+
+      const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
+      const tax = subtotal * 0.1; // 10% tax
+      const totalAmount = subtotal + tax;
+
+      purchaseOrderService.createPO({
+        supplierId: supplierId,
+        supplierName: supplier.name,
+        items,
+        subtotal,
+        tax,
+        totalAmount,
+        status: "draft",
+        requestedBy: formData.requestedBy,
+        expectedDelivery: formData.expectedDelivery || undefined,
+        notes: formData.notes || undefined,
+      });
     });
 
-    const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
-    const tax = subtotal * 0.1; // 10% tax
-    const totalAmount = subtotal + tax;
-
-    purchaseOrderService.createPO({
-      supplierId: formData.supplierId,
-      supplierName: supplier.name,
-      items,
-      subtotal,
-      tax,
-      totalAmount,
-      status: "draft",
-      requestedBy: formData.requestedBy,
-      expectedDelivery: formData.expectedDelivery || undefined,
-      notes: formData.notes || undefined,
-    });
-
-    toast.success("Purchase Order berhasil dibuat");
+    toast.success(`${formData.supplierIds.length} Purchase Order berhasil dibuat`);
     loadPurchaseOrders();
-    setIsDialogOpen(false);
+    setIsFormOpen(false);
     resetForm();
   };
 
@@ -240,44 +259,98 @@ export default function ProcurementPage() {
             Kelola pembelian bahan baku dari supplier
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) resetForm();
-        }}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Buat PO Baru
+        <Button onClick={() => setIsFormOpen(!isFormOpen)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Buat PO Baru
+        </Button>
+      </div>
+
+      {/* Inline Form */}
+      {isFormOpen && (
+        <Card className="border-primary shadow-lg animate-in slide-in-from-top-2">
+          <CardHeader className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-4 top-4"
+              onClick={() => {
+                setIsFormOpen(false);
+                resetForm();
+              }}
+            >
+              <X className="h-4 w-4" />
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Buat Purchase Order Baru</DialogTitle>
-              <DialogDescription>
-                Tambahkan detail pembelian dari supplier
-              </DialogDescription>
-            </DialogHeader>
+            <CardTitle>Buat Purchase Order Baru</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Tambahkan detail pembelian dari supplier
+            </p>
+          </CardHeader>
+          <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="supplier">Supplier *</Label>
-                  <Select
-                    value={formData.supplierId}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, supplierId: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih supplier" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {suppliers.map((supplier) => (
-                        <SelectItem key={supplier.id} value={supplier.id}>
-                          {supplier.name} ({supplier.code})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>Supplier * (Multi-Select)</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        {formData.supplierIds.length === 0
+                          ? "Pilih supplier..."
+                          : `${formData.supplierIds.length} supplier dipilih`}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[400px] p-4" align="start">
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium">Pilih Supplier</p>
+                        <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                          {suppliers.map((supplier) => (
+                            <div
+                              key={supplier.id}
+                              className="flex items-center space-x-2 p-2 hover:bg-accent rounded-md cursor-pointer"
+                              onClick={() => toggleSupplier(supplier.id)}
+                            >
+                              <Checkbox
+                                id={supplier.id}
+                                checked={formData.supplierIds.includes(supplier.id)}
+                                onCheckedChange={() => toggleSupplier(supplier.id)}
+                              />
+                              <label
+                                htmlFor={supplier.id}
+                                className="flex-1 text-sm cursor-pointer"
+                              >
+                                {supplier.name} <span className="text-muted-foreground">({supplier.code})</span>
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                        {formData.supplierIds.length > 0 && (
+                          <div className="pt-2 border-t">
+                            <p className="text-xs text-muted-foreground">
+                              {formData.supplierIds.length} supplier dipilih. PO akan dibuat untuk setiap supplier.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                  {formData.supplierIds.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {formData.supplierIds.map(id => {
+                        const supplier = suppliers.find(s => s.id === id);
+                        return supplier ? (
+                          <Badge key={id} variant="secondary" className="gap-1">
+                            {supplier.name}
+                            <X
+                              className="h-3 w-3 cursor-pointer"
+                              onClick={() => toggleSupplier(id)}
+                            />
+                          </Badge>
+                        ) : null;
+                      })}
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="expectedDelivery">Estimasi Pengiriman</Label>
@@ -398,7 +471,7 @@ export default function ProcurementPage() {
                     </span>
                   </div>
                   <div className="flex justify-between text-lg font-bold border-t pt-2">
-                    <span>Total:</span>
+                    <span>Total per Supplier:</span>
                     <span>
                       {formatCurrency(
                         formData.items.reduce((sum, item) => {
@@ -407,23 +480,35 @@ export default function ProcurementPage() {
                       )}
                     </span>
                   </div>
+                  {formData.supplierIds.length > 1 && (
+                    <p className="text-xs text-muted-foreground text-center pt-2 border-t">
+                      Total {formData.supplierIds.length} PO akan dibuat dengan nilai masing-masing {formatCurrency(
+                        formData.items.reduce((sum, item) => {
+                          return sum + item.quantity * item.unitPrice;
+                        }, 0) * 1.1
+                      )}
+                    </p>
+                  )}
                 </div>
               )}
 
-              <DialogFooter>
+              <div className="flex gap-2 justify-end">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
+                  onClick={() => {
+                    setIsFormOpen(false);
+                    resetForm();
+                  }}
                 >
                   Batal
                 </Button>
                 <Button type="submit">Simpan Draft</Button>
-              </DialogFooter>
+              </div>
             </form>
-          </DialogContent>
-        </Dialog>
-      </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-5">
