@@ -39,7 +39,8 @@ import {
   Play,
   CheckCircle2,
   Trash2,
-  AlertTriangle } from
+  AlertTriangle,
+  X } from
 "lucide-react";
 import { productionPlanService, wasteRecordService } from "@/lib/services/productionService";
 import { menuService } from "@/lib/services/menuService";
@@ -52,7 +53,7 @@ export default function ProductionPage() {
   const [activeTab, setActiveTab] = useState("plans");
   const [productionPlans, setProductionPlans] = useState<ProductionPlan[]>([]);
   const [wasteRecords, setWasteRecords] = useState<WasteRecord[]>([]);
-  const [isPlanDialogOpen, setIsPlanDialogOpen] = useState(false);
+  const [showPlanForm, setShowPlanForm] = useState(false);
   const [isWasteDialogOpen, setIsWasteDialogOpen] = useState(false);
   const [viewingPlan, setViewingPlan] = useState<ProductionPlan | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
@@ -133,7 +134,7 @@ export default function ProductionPage() {
 
     toast.success("Rencana produksi berhasil dibuat");
     loadData();
-    setIsPlanDialogOpen(false);
+    setShowPlanForm(false);
     resetPlanForm();
   };
 
@@ -307,209 +308,15 @@ export default function ProductionPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Dialog open={isPlanDialogOpen} onOpenChange={setIsPlanDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Rencana Produksi
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Buat Rencana Produksi</DialogTitle>
-                <DialogDescription>
-                  Tentukan menu dan bahan baku yang dibutuhkan
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handlePlanSubmit} className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="date">Tanggal *</Label>
-                    <Input
-                      id="date"
-                      type="date"
-                      value={planFormData.date}
-                      onChange={(e) =>
-                      setPlanFormData({ ...planFormData, date: e.target.value })
-                      }
-                      required />
-
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="shift">Shift *</Label>
-                    <Select
-                      value={planFormData.shift}
-                      onValueChange={(value: any) =>
-                      setPlanFormData({ ...planFormData, shift: value })
-                      }>
-
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="morning">Pagi</SelectItem>
-                        <SelectItem value="afternoon">Siang</SelectItem>
-                        <SelectItem value="evening">Malam</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Output Menu *</Label>
-                  <div className="space-y-2">
-                    {planFormData.outputs.map((output, index) =>
-                    <div key={index} className="flex gap-2 items-center p-3 border rounded-lg">
-                        <Select
-                        value={output.menuItemId}
-                        onValueChange={(value) => {
-                          const newOutputs = [...planFormData.outputs];
-                          newOutputs[index].menuItemId = value;
-                          setPlanFormData({ ...planFormData, outputs: newOutputs });
-                        }}>
-
-                          <SelectTrigger className="flex-1">
-                            <SelectValue placeholder="Pilih menu" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {menuItems.map((menu) =>
-                            <SelectItem key={menu.id} value={menu.id}>
-                                  {menu.name}
-                                </SelectItem>
-                            )}
-                          </SelectContent>
-                        </Select>
-                        <Input
-                        type="number"
-                        min="1"
-                        value={output.plannedQuantity}
-                        onChange={(e) => {
-                          const newOutputs = [...planFormData.outputs];
-                          newOutputs[index].plannedQuantity = parseInt(e.target.value) || 1;
-                          setPlanFormData({ ...planFormData, outputs: newOutputs });
-                        }}
-                        placeholder="Jumlah"
-                        className="w-24" />
-
-                        <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          const newOutputs = planFormData.outputs.filter((_, i) => i !== index);
-                          setPlanFormData({ ...planFormData, outputs: newOutputs });
-                        }}>
-
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addOutput}
-                    className="w-full">
-
-                    <Plus className="mr-2 h-4 w-4" />
-                    Tambah Output
-                  </Button>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Bahan Baku Dibutuhkan</Label>
-                  <div className="space-y-2">
-                    {planFormData.materials.map((material, index) =>
-                    <div key={index} className="flex gap-2 items-center p-3 border rounded-lg">
-                        <Select
-                        value={material.inventoryItemId}
-                        onValueChange={(value) => {
-                          const newMaterials = [...planFormData.materials];
-                          newMaterials[index].inventoryItemId = value;
-                          setPlanFormData({ ...planFormData, materials: newMaterials });
-                        }}>
-
-                          <SelectTrigger className="flex-1">
-                            <SelectValue placeholder="Pilih bahan" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {inventoryItems.map((item) =>
-                            <SelectItem key={item.id} value={item.id}>
-                                  {item.name} ({item.unit})
-                                </SelectItem>
-                            )}
-                          </SelectContent>
-                        </Select>
-                        <Input
-                        type="number"
-                        min="1"
-                        value={material.requiredQuantity}
-                        onChange={(e) => {
-                          const newMaterials = [...planFormData.materials];
-                          newMaterials[index].requiredQuantity = parseFloat(e.target.value) || 1;
-                          setPlanFormData({ ...planFormData, materials: newMaterials });
-                        }}
-                        placeholder="Jumlah"
-                        className="w-24" />
-
-                        <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          const newMaterials = planFormData.materials.filter((_, i) => i !== index);
-                          setPlanFormData({ ...planFormData, materials: newMaterials });
-                        }}>
-
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addMaterial}
-                    className="w-full">
-
-                    <Plus className="mr-2 h-4 w-4" />
-                    Tambah Bahan
-                  </Button>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Catatan</Label>
-                  <Textarea
-                    id="notes"
-                    value={planFormData.notes}
-                    onChange={(e) =>
-                    setPlanFormData({ ...planFormData, notes: e.target.value })
-                    }
-                    rows={2} />
-
-                </div>
-
-                <DialogFooter>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsPlanDialogOpen(false)}>
-
-                    Batal
-                  </Button>
-                  <Button type="submit">Simpan Rencana</Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => setShowPlanForm(!showPlanForm)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Rencana Produksi
+          </Button>
 
           <Dialog open={isWasteDialogOpen} onOpenChange={setIsWasteDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="!whitespace-pre-line">
-                <AlertTriangle className="mr-2 h-4 w-4" />Catat
-
+                <AlertTriangle className="mr-2 h-4 w-4" />Catat Waste
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
@@ -604,6 +411,216 @@ export default function ProductionPage() {
           </Dialog>
         </div>
       </div>
+
+      {/* Inline Production Plan Form */}
+      {showPlanForm && (
+        <Card className="border-primary/50 shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+            <div>
+              <CardTitle>Buat Rencana Produksi</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Tentukan menu dan bahan baku yang dibutuhkan
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setShowPlanForm(false);
+                resetPlanForm();
+              }}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handlePlanSubmit} className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="date">Tanggal *</Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={planFormData.date}
+                    onChange={(e) =>
+                      setPlanFormData({ ...planFormData, date: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="shift">Shift *</Label>
+                  <Select
+                    value={planFormData.shift}
+                    onValueChange={(value: any) =>
+                      setPlanFormData({ ...planFormData, shift: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="morning">Pagi</SelectItem>
+                      <SelectItem value="afternoon">Siang</SelectItem>
+                      <SelectItem value="evening">Malam</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Output Menu *</Label>
+                <div className="space-y-2">
+                  {planFormData.outputs.map((output, index) => (
+                    <div key={index} className="flex gap-2 items-center p-3 border rounded-lg">
+                      <Select
+                        value={output.menuItemId}
+                        onValueChange={(value) => {
+                          const newOutputs = [...planFormData.outputs];
+                          newOutputs[index].menuItemId = value;
+                          setPlanFormData({ ...planFormData, outputs: newOutputs });
+                        }}
+                      >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Pilih menu" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {menuItems.map((menu) => (
+                            <SelectItem key={menu.id} value={menu.id}>
+                              {menu.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={output.plannedQuantity}
+                        onChange={(e) => {
+                          const newOutputs = [...planFormData.outputs];
+                          newOutputs[index].plannedQuantity = parseInt(e.target.value) || 1;
+                          setPlanFormData({ ...planFormData, outputs: newOutputs });
+                        }}
+                        placeholder="Jumlah"
+                        className="w-24"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          const newOutputs = planFormData.outputs.filter((_, i) => i !== index);
+                          setPlanFormData({ ...planFormData, outputs: newOutputs });
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addOutput}
+                  className="w-full"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Tambah Output
+                </Button>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Bahan Baku Dibutuhkan</Label>
+                <div className="space-y-2">
+                  {planFormData.materials.map((material, index) => (
+                    <div key={index} className="flex gap-2 items-center p-3 border rounded-lg">
+                      <Select
+                        value={material.inventoryItemId}
+                        onValueChange={(value) => {
+                          const newMaterials = [...planFormData.materials];
+                          newMaterials[index].inventoryItemId = value;
+                          setPlanFormData({ ...planFormData, materials: newMaterials });
+                        }}
+                      >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Pilih bahan" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {inventoryItems.map((item) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.name} ({item.unit})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={material.requiredQuantity}
+                        onChange={(e) => {
+                          const newMaterials = [...planFormData.materials];
+                          newMaterials[index].requiredQuantity = parseFloat(e.target.value) || 1;
+                          setPlanFormData({ ...planFormData, materials: newMaterials });
+                        }}
+                        placeholder="Jumlah"
+                        className="w-24"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          const newMaterials = planFormData.materials.filter((_, i) => i !== index);
+                          setPlanFormData({ ...planFormData, materials: newMaterials });
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addMaterial}
+                  className="w-full"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Tambah Bahan
+                </Button>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="notes">Catatan</Label>
+                <Textarea
+                  id="notes"
+                  value={planFormData.notes}
+                  onChange={(e) =>
+                    setPlanFormData({ ...planFormData, notes: e.target.value })
+                  }
+                  rows={2}
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowPlanForm(false);
+                    resetPlanForm();
+                  }}
+                >
+                  Batal
+                </Button>
+                <Button type="submit">Simpan Rencana</Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-5">
