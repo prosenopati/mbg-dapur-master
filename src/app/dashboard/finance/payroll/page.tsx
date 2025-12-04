@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -261,14 +260,12 @@ export default function PayrollPage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-muted-foreground">Loading...</p>
-          </div>
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading...</p>
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
@@ -277,184 +274,182 @@ export default function PayrollPage() {
   const totalPaid = payrollService.getTotalByStatus("paid");
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Payroll Management
-            </h1>
-            <p className="text-muted-foreground">
-              Kelola pembayaran gaji dan honor karyawan
-            </p>
-          </div>
-          <Button onClick={handleOpenDialog}>
-            <Plus className="w-4 h-4 mr-2" />
-            Buat Payroll
-          </Button>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Payroll Management
+          </h1>
+          <p className="text-muted-foreground">
+            Kelola pembayaran gaji dan honor karyawan
+          </p>
         </div>
+        <Button onClick={handleOpenDialog}>
+          <Plus className="w-4 h-4 mr-2" />
+          Buat Payroll
+        </Button>
+      </div>
 
-        {/* Stats */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Pending</CardTitle>
-              <Clock className="h-4 w-4 text-orange-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(totalPending)}</div>
-              <p className="text-xs text-muted-foreground">
-                {payrolls.filter((p) => p.status === "pending").length} payrolls
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Processed</CardTitle>
-              <CheckCircle className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(totalProcessed)}</div>
-              <p className="text-xs text-muted-foreground">
-                {payrolls.filter((p) => p.status === "processed").length} payrolls
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Paid</CardTitle>
-              <DollarSign className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(totalPaid)}</div>
-              <p className="text-xs text-muted-foreground">
-                {payrolls.filter((p) => p.status === "paid").length} payrolls
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Payrolls</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{payrolls.length}</div>
-              <p className="text-xs text-muted-foreground">All time</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Payrolls Table */}
+      {/* Stats */}
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
-          <CardHeader>
-            <CardTitle>Daftar Payroll</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Pending</CardTitle>
+            <Clock className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Payroll Number</TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Schedule</TableHead>
-                    <TableHead>Period</TableHead>
-                    <TableHead>Payment Date</TableHead>
-                    <TableHead>Total Amount</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Aksi</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {payrolls.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={8}
-                        className="text-center py-8 text-muted-foreground"
-                      >
-                        Belum ada payroll
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    payrolls.map((payroll) => (
-                      <TableRow key={payroll.id}>
-                        <TableCell className="font-mono text-sm">
-                          {payroll.payrollNumber}
-                        </TableCell>
-                        <TableCell className="font-medium max-w-xs truncate">
-                          {payroll.title}
-                        </TableCell>
-                        <TableCell>{getScheduleBadge(payroll.schedule)}</TableCell>
-                        <TableCell className="text-sm">
-                          {formatDate(payroll.periodStart)} -{" "}
-                          {formatDate(payroll.periodEnd)}
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {formatDate(payroll.paymentDate)}
-                        </TableCell>
-                        <TableCell className="font-semibold">
-                          {formatCurrency(payroll.totalAmount)}
-                        </TableCell>
-                        <TableCell>{getStatusBadge(payroll.status)}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleView(payroll)}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            {payroll.status === "pending" && (
-                              <>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleProcess(payroll.id)}
-                                  title="Process"
-                                >
-                                  <CheckCircle className="w-4 h-4 text-blue-600" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleCancel(payroll.id)}
-                                  title="Cancel"
-                                >
-                                  <XCircle className="w-4 h-4 text-red-600" />
-                                </Button>
-                              </>
-                            )}
-                            {payroll.status === "processed" && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleMarkAsPaid(payroll.id)}
-                                title="Mark as Paid"
-                              >
-                                <DollarSign className="w-4 h-4 text-green-600" />
-                              </Button>
-                            )}
-                            {payroll.status === "cancelled" && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDelete(payroll.id)}
-                              >
-                                <Trash2 className="w-4 h-4 text-red-600" />
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+            <div className="text-2xl font-bold">{formatCurrency(totalPending)}</div>
+            <p className="text-xs text-muted-foreground">
+              {payrolls.filter((p) => p.status === "pending").length} payrolls
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Processed</CardTitle>
+            <CheckCircle className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(totalProcessed)}</div>
+            <p className="text-xs text-muted-foreground">
+              {payrolls.filter((p) => p.status === "processed").length} payrolls
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Paid</CardTitle>
+            <DollarSign className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(totalPaid)}</div>
+            <p className="text-xs text-muted-foreground">
+              {payrolls.filter((p) => p.status === "paid").length} payrolls
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Payrolls</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{payrolls.length}</div>
+            <p className="text-xs text-muted-foreground">All time</p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Payrolls Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Daftar Payroll</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Payroll Number</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Schedule</TableHead>
+                  <TableHead>Period</TableHead>
+                  <TableHead>Payment Date</TableHead>
+                  <TableHead>Total Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {payrolls.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={8}
+                      className="text-center py-8 text-muted-foreground"
+                    >
+                      Belum ada payroll
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  payrolls.map((payroll) => (
+                    <TableRow key={payroll.id}>
+                      <TableCell className="font-mono text-sm">
+                        {payroll.payrollNumber}
+                      </TableCell>
+                      <TableCell className="font-medium max-w-xs truncate">
+                        {payroll.title}
+                      </TableCell>
+                      <TableCell>{getScheduleBadge(payroll.schedule)}</TableCell>
+                      <TableCell className="text-sm">
+                        {formatDate(payroll.periodStart)} -{" "}
+                        {formatDate(payroll.periodEnd)}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {formatDate(payroll.paymentDate)}
+                      </TableCell>
+                      <TableCell className="font-semibold">
+                        {formatCurrency(payroll.totalAmount)}
+                      </TableCell>
+                      <TableCell>{getStatusBadge(payroll.status)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleView(payroll)}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          {payroll.status === "pending" && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleProcess(payroll.id)}
+                                title="Process"
+                              >
+                                <CheckCircle className="w-4 h-4 text-blue-600" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleCancel(payroll.id)}
+                                title="Cancel"
+                              >
+                                <XCircle className="w-4 h-4 text-red-600" />
+                              </Button>
+                            </>
+                          )}
+                          {payroll.status === "processed" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleMarkAsPaid(payroll.id)}
+                              title="Mark as Paid"
+                            >
+                              <DollarSign className="w-4 h-4 text-green-600" />
+                            </Button>
+                          )}
+                          {payroll.status === "cancelled" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(payroll.id)}
+                            >
+                              <Trash2 className="w-4 h-4 text-red-600" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Create Payroll Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -779,6 +774,6 @@ export default function PayrollPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </div>
   );
 }

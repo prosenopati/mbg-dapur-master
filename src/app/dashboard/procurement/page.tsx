@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -232,348 +231,346 @@ export default function ProcurementPage() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Procurement / Purchase Order</h1>
-            <p className="text-muted-foreground">
-              Kelola pembelian bahan baku dari supplier
-            </p>
-          </div>
-          <Dialog open={isDialogOpen} onOpenChange={(open) => {
-            setIsDialogOpen(open);
-            if (!open) resetForm();
-          }}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Buat PO Baru
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Buat Purchase Order Baru</DialogTitle>
-                <DialogDescription>
-                  Tambahkan detail pembelian dari supplier
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="supplier">Supplier *</Label>
-                    <Select
-                      value={formData.supplierId}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, supplierId: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih supplier" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {suppliers.map((supplier) => (
-                          <SelectItem key={supplier.id} value={supplier.id}>
-                            {supplier.name} ({supplier.code})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="expectedDelivery">Estimasi Pengiriman</Label>
-                    <Input
-                      id="expectedDelivery"
-                      type="date"
-                      value={formData.expectedDelivery}
-                      onChange={(e) =>
-                        setFormData({ ...formData, expectedDelivery: e.target.value })
-                      }
-                    />
-                  </div>
-                </div>
-
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Procurement / Purchase Order</h1>
+          <p className="text-muted-foreground">
+            Kelola pembelian bahan baku dari supplier
+          </p>
+        </div>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) resetForm();
+        }}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Buat PO Baru
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Buat Purchase Order Baru</DialogTitle>
+              <DialogDescription>
+                Tambahkan detail pembelian dari supplier
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>Item Pembelian *</Label>
-                  <div className="space-y-2">
-                    {formData.items.map((item, index) => (
-                      <div key={index} className="flex gap-2 items-start p-3 border rounded-lg">
-                        <div className="flex-1 grid gap-2 md:grid-cols-4">
-                          <Select
-                            value={item.inventoryItemId}
-                            onValueChange={(value) =>
-                              updateItem(index, "inventoryItemId", value)
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Pilih item" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {inventoryItems.map((inv) => (
-                                <SelectItem key={inv.id} value={inv.id}>
-                                  {inv.name} ({inv.unit})
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Input
-                            type="number"
-                            min="1"
-                            value={item.quantity}
-                            onChange={(e) =>
-                              updateItem(index, "quantity", parseInt(e.target.value))
-                            }
-                            placeholder="Qty"
-                          />
-                          <CurrencyInput
-                            value={item.unitPrice}
-                            onChange={(value) =>
-                              updateItem(index, "unitPrice", value)
-                            }
-                            placeholder="Harga satuan"
-                          />
-                          <Input
-                            value={item.notes || ""}
-                            onChange={(e) =>
-                              updateItem(index, "notes", e.target.value)
-                            }
-                            placeholder="Catatan"
-                          />
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeItem(index)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addItem}
-                    className="w-full"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Tambah Item
-                  </Button>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Catatan</Label>
-                  <Textarea
-                    id="notes"
-                    value={formData.notes}
-                    onChange={(e) =>
-                      setFormData({ ...formData, notes: e.target.value })
+                  <Label htmlFor="supplier">Supplier *</Label>
+                  <Select
+                    value={formData.supplierId}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, supplierId: value })
                     }
-                    placeholder="Catatan tambahan..."
-                    rows={2}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih supplier" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {suppliers.map((supplier) => (
+                        <SelectItem key={supplier.id} value={supplier.id}>
+                          {supplier.name} ({supplier.code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="expectedDelivery">Estimasi Pengiriman</Label>
+                  <Input
+                    id="expectedDelivery"
+                    type="date"
+                    value={formData.expectedDelivery}
+                    onChange={(e) =>
+                      setFormData({ ...formData, expectedDelivery: e.target.value })
+                    }
                   />
                 </div>
+              </div>
 
-                {formData.items.length > 0 && (
-                  <div className="rounded-lg bg-muted p-4 space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Subtotal:</span>
-                      <span className="font-medium">
-                        {formatCurrency(
-                          formData.items.reduce((sum, item) => {
-                            return sum + item.quantity * item.unitPrice;
-                          }, 0)
-                        )}
-                      </span>
+              <div className="space-y-2">
+                <Label>Item Pembelian *</Label>
+                <div className="space-y-2">
+                  {formData.items.map((item, index) => (
+                    <div key={index} className="flex gap-2 items-start p-3 border rounded-lg">
+                      <div className="flex-1 grid gap-2 md:grid-cols-4">
+                        <Select
+                          value={item.inventoryItemId}
+                          onValueChange={(value) =>
+                            updateItem(index, "inventoryItemId", value)
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih item" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {inventoryItems.map((inv) => (
+                              <SelectItem key={inv.id} value={inv.id}>
+                                {inv.name} ({inv.unit})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={item.quantity}
+                          onChange={(e) =>
+                            updateItem(index, "quantity", parseInt(e.target.value))
+                          }
+                          placeholder="Qty"
+                        />
+                        <CurrencyInput
+                          value={item.unitPrice}
+                          onChange={(value) =>
+                            updateItem(index, "unitPrice", value)
+                          }
+                          placeholder="Harga satuan"
+                        />
+                        <Input
+                          value={item.notes || ""}
+                          onChange={(e) =>
+                            updateItem(index, "notes", e.target.value)
+                          }
+                          placeholder="Catatan"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeItem(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Pajak (10%):</span>
-                      <span className="font-medium">
-                        {formatCurrency(
-                          formData.items.reduce((sum, item) => {
-                            return sum + item.quantity * item.unitPrice;
-                          }, 0) * 0.1
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-lg font-bold border-t pt-2">
-                      <span>Total:</span>
-                      <span>
-                        {formatCurrency(
-                          formData.items.reduce((sum, item) => {
-                            return sum + item.quantity * item.unitPrice;
-                          }, 0) * 1.1
-                        )}
-                      </span>
-                    </div>
+                  ))}
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addItem}
+                  className="w-full"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Tambah Item
+                </Button>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="notes">Catatan</Label>
+                <Textarea
+                  id="notes"
+                  value={formData.notes}
+                  onChange={(e) =>
+                    setFormData({ ...formData, notes: e.target.value })
+                  }
+                  placeholder="Catatan tambahan..."
+                  rows={2}
+                />
+              </div>
+
+              {formData.items.length > 0 && (
+                <div className="rounded-lg bg-muted p-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Subtotal:</span>
+                    <span className="font-medium">
+                      {formatCurrency(
+                        formData.items.reduce((sum, item) => {
+                          return sum + item.quantity * item.unitPrice;
+                        }, 0)
+                      )}
+                    </span>
                   </div>
-                )}
+                  <div className="flex justify-between text-sm">
+                    <span>Pajak (10%):</span>
+                    <span className="font-medium">
+                      {formatCurrency(
+                        formData.items.reduce((sum, item) => {
+                          return sum + item.quantity * item.unitPrice;
+                        }, 0) * 0.1
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-lg font-bold border-t pt-2">
+                    <span>Total:</span>
+                    <span>
+                      {formatCurrency(
+                        formData.items.reduce((sum, item) => {
+                          return sum + item.quantity * item.unitPrice;
+                        }, 0) * 1.1
+                      )}
+                    </span>
+                  </div>
+                </div>
+              )}
 
-                <DialogFooter>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsDialogOpen(false)}
-                  >
-                    Batal
-                  </Button>
-                  <Button type="submit">Simpan Draft</Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                >
+                  Batal
+                </Button>
+                <Button type="submit">Simpan Draft</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
 
-        {/* Stats */}
-        <div className="grid gap-4 md:grid-cols-5">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total PO</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.all}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Draft</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-600">{stats.draft}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{stats.pending_approval}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Approved</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Sent</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{stats.sent}</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* PO Table */}
+      {/* Stats */}
+      <div className="grid gap-4 md:grid-cols-5">
         <Card>
-          <CardHeader>
-            <CardTitle>Purchase Orders</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total PO</CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-6">
-                <TabsTrigger value="all">All ({stats.all})</TabsTrigger>
-                <TabsTrigger value="draft">Draft ({stats.draft})</TabsTrigger>
-                <TabsTrigger value="pending_approval">Pending ({stats.pending_approval})</TabsTrigger>
-                <TabsTrigger value="approved">Approved ({stats.approved})</TabsTrigger>
-                <TabsTrigger value="sent">Sent ({stats.sent})</TabsTrigger>
-                <TabsTrigger value="received">Received</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value={activeTab} className="mt-4">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>PO Number</TableHead>
-                      <TableHead>Supplier</TableHead>
-                      <TableHead>Items</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredPOs.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8">
-                          <p className="text-muted-foreground">Tidak ada PO</p>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredPOs.map((po) => (
-                        <TableRow key={po.id}>
-                          <TableCell className="font-medium">{po.poNumber}</TableCell>
-                          <TableCell>{po.supplierName}</TableCell>
-                          <TableCell>{po.items.length} item(s)</TableCell>
-                          <TableCell className="font-medium">
-                            {formatCurrency(po.totalAmount)}
-                          </TableCell>
-                          <TableCell>{getStatusBadge(po.status)}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {formatDate(po.createdAt)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  setViewingPO(po);
-                                  setIsViewDialogOpen(true);
-                                }}
-                                title="View"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              {po.status === "draft" && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleStatusChange(po.id, "pending_approval")}
-                                >
-                                  Submit untuk Approval
-                                </Button>
-                              )}
-                              {po.status === "pending_approval" && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleStatusChange(po.id, "approved")}
-                                >
-                                  <CheckCircle2 className="mr-2 h-4 w-4" />
-                                  Setujui
-                                </Button>
-                              )}
-                              {po.status === "approved" && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleStatusChange(po.id, "sent")}
-                                >
-                                  <Send className="mr-2 h-4 w-4" />
-                                  Kirim ke Supplier
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </TabsContent>
-            </Tabs>
+            <div className="text-2xl font-bold">{stats.all}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Draft</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-gray-600">{stats.draft}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">{stats.pending_approval}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Approved</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Sent</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{stats.sent}</div>
           </CardContent>
         </Card>
       </div>
+
+      {/* PO Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Purchase Orders</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="all">All ({stats.all})</TabsTrigger>
+              <TabsTrigger value="draft">Draft ({stats.draft})</TabsTrigger>
+              <TabsTrigger value="pending_approval">Pending ({stats.pending_approval})</TabsTrigger>
+              <TabsTrigger value="approved">Approved ({stats.approved})</TabsTrigger>
+              <TabsTrigger value="sent">Sent ({stats.sent})</TabsTrigger>
+              <TabsTrigger value="received">Received</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value={activeTab} className="mt-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>PO Number</TableHead>
+                    <TableHead>Supplier</TableHead>
+                    <TableHead>Items</TableHead>
+                    <TableHead>Total</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredPOs.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8">
+                        <p className="text-muted-foreground">Tidak ada PO</p>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredPOs.map((po) => (
+                      <TableRow key={po.id}>
+                        <TableCell className="font-medium">{po.poNumber}</TableCell>
+                        <TableCell>{po.supplierName}</TableCell>
+                        <TableCell>{po.items.length} item(s)</TableCell>
+                        <TableCell className="font-medium">
+                          {formatCurrency(po.totalAmount)}
+                        </TableCell>
+                        <TableCell>{getStatusBadge(po.status)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {formatDate(po.createdAt)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setViewingPO(po);
+                                setIsViewDialogOpen(true);
+                              }}
+                              title="View"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            {po.status === "draft" && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleStatusChange(po.id, "pending_approval")}
+                              >
+                                Submit untuk Approval
+                              </Button>
+                            )}
+                            {po.status === "pending_approval" && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleStatusChange(po.id, "approved")}
+                              >
+                                <CheckCircle2 className="mr-2 h-4 w-4" />
+                                Setujui
+                              </Button>
+                            )}
+                            {po.status === "approved" && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleStatusChange(po.id, "sent")}
+                              >
+                                <Send className="mr-2 h-4 w-4" />
+                                Kirim ke Supplier
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
 
       {/* View PO Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
@@ -658,6 +655,6 @@ export default function ProcurementPage() {
           )}
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </div>
   );
 }

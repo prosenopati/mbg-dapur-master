@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -232,385 +231,383 @@ export default function PaymentsPage() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              Pembayaran Supplier
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              Kelola pembayaran ke supplier
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Dialog open={isRequestDialogOpen} onOpenChange={setIsRequestDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Ajukan Pembayaran
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Buat Permintaan Pembayaran</DialogTitle>
-                  <DialogDescription>
-                    Ajukan permintaan pembayaran ke supplier
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleRequestSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="request-invoice">Invoice *</Label>
-                    <Select
-                      value={requestFormData.invoiceId}
-                      onValueChange={(value) => {
-                        setRequestFormData({ ...requestFormData, invoiceId: value });
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih invoice" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {pendingInvoices.map((invoice) => (
-                          <SelectItem key={invoice.id} value={invoice.id}>
-                            {invoice.invoiceNumber} - {invoice.supplierName} ({formatCurrency(invoice.remainingAmount)})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="request-notes">Catatan</Label>
-                    <Textarea
-                      id="request-notes"
-                      value={requestFormData.notes}
-                      onChange={(e) =>
-                        setRequestFormData({ ...requestFormData, notes: e.target.value })
-                      }
-                      rows={2}
-                    />
-                  </div>
-
-                  <DialogFooter>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsRequestDialogOpen(false)}
-                    >
-                      Batal
-                    </Button>
-                    <Button type="submit">Ajukan</Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-
-            <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <DollarSign className="mr-2 h-4 w-4" />
-                  Catat Pembayaran
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Catat Pembayaran</DialogTitle>
-                  <DialogDescription>
-                    Catat pembayaran yang telah dilakukan
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handlePaymentSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="payment-invoice">Invoice *</Label>
-                    <Select
-                      value={paymentFormData.invoiceId}
-                      onValueChange={(value) => {
-                        const invoice = pendingInvoices.find(i => i.id === value);
-                        setPaymentFormData({ 
-                          ...paymentFormData, 
-                          invoiceId: value,
-                          amount: invoice?.remainingAmount || 0,
-                        });
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih invoice" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {pendingInvoices.map((invoice) => (
-                          <SelectItem key={invoice.id} value={invoice.id}>
-                            {invoice.invoiceNumber} - {invoice.supplierName} ({formatCurrency(invoice.remainingAmount)})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="payment-amount">Jumlah Pembayaran *</Label>
-                    <CurrencyInput
-                      id="payment-amount"
-                      value={paymentFormData.amount}
-                      onChange={(value) =>
-                        setPaymentFormData({ ...paymentFormData, amount: value })
-                      }
-                      placeholder="0"
-                      required
-                    />
-                    {paymentFormData.invoiceId && (
-                      <p className="text-xs text-muted-foreground">
-                        Sisa tagihan: {formatCurrency(
-                          pendingInvoices.find(i => i.id === paymentFormData.invoiceId)?.remainingAmount || 0
-                        )}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="payment-method">Metode Pembayaran *</Label>
-                    <Select
-                      value={paymentFormData.method}
-                      onValueChange={(value: any) =>
-                        setPaymentFormData({ ...paymentFormData, method: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="cash">Tunai</SelectItem>
-                        <SelectItem value="transfer">Transfer</SelectItem>
-                        <SelectItem value="check">Cek</SelectItem>
-                        <SelectItem value="other">Lainnya</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="payment-reference">Referensi (No. Transfer/Cek)</Label>
-                    <Input
-                      id="payment-reference"
-                      value={paymentFormData.reference}
-                      onChange={(e) =>
-                        setPaymentFormData({ ...paymentFormData, reference: e.target.value })
-                      }
-                      placeholder="Opsional"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="payment-notes">Catatan</Label>
-                    <Textarea
-                      id="payment-notes"
-                      value={paymentFormData.notes}
-                      onChange={(e) =>
-                        setPaymentFormData({ ...paymentFormData, notes: e.target.value })
-                      }
-                      rows={2}
-                    />
-                  </div>
-
-                  <DialogFooter>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsPaymentDialogOpen(false)}
-                    >
-                      Batal
-                    </Button>
-                    <Button type="submit">Catat Pembayaran</Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+            Pembayaran Supplier
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Kelola pembayaran ke supplier
+          </p>
         </div>
+        <div className="flex gap-2">
+          <Dialog open={isRequestDialogOpen} onOpenChange={setIsRequestDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Plus className="mr-2 h-4 w-4" />
+                Ajukan Pembayaran
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Buat Permintaan Pembayaran</DialogTitle>
+                <DialogDescription>
+                  Ajukan permintaan pembayaran ke supplier
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleRequestSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="request-invoice">Invoice *</Label>
+                  <Select
+                    value={requestFormData.invoiceId}
+                    onValueChange={(value) => {
+                      setRequestFormData({ ...requestFormData, invoiceId: value });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih invoice" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {pendingInvoices.map((invoice) => (
+                        <SelectItem key={invoice.id} value={invoice.id}>
+                          {invoice.invoiceNumber} - {invoice.supplierName} ({formatCurrency(invoice.remainingAmount)})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-        {/* Stats */}
-        <div className="grid gap-4 md:grid-cols-5">
-          <Card className="shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total Permintaan</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalRequests}</div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Menunggu</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Disetujui</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total Pembayaran</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalPayments}</div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total Jumlah</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold text-blue-600">
-                {formatCurrency(stats.totalAmount)}
-              </div>
-            </CardContent>
-          </Card>
+                <div className="space-y-2">
+                  <Label htmlFor="request-notes">Catatan</Label>
+                  <Textarea
+                    id="request-notes"
+                    value={requestFormData.notes}
+                    onChange={(e) =>
+                      setRequestFormData({ ...requestFormData, notes: e.target.value })
+                    }
+                    rows={2}
+                  />
+                </div>
+
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsRequestDialogOpen(false)}
+                  >
+                    Batal
+                  </Button>
+                  <Button type="submit">Ajukan</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <DollarSign className="mr-2 h-4 w-4" />
+                Catat Pembayaran
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Catat Pembayaran</DialogTitle>
+                <DialogDescription>
+                  Catat pembayaran yang telah dilakukan
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handlePaymentSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="payment-invoice">Invoice *</Label>
+                  <Select
+                    value={paymentFormData.invoiceId}
+                    onValueChange={(value) => {
+                      const invoice = pendingInvoices.find(i => i.id === value);
+                      setPaymentFormData({ 
+                        ...paymentFormData, 
+                        invoiceId: value,
+                        amount: invoice?.remainingAmount || 0,
+                      });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih invoice" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {pendingInvoices.map((invoice) => (
+                        <SelectItem key={invoice.id} value={invoice.id}>
+                          {invoice.invoiceNumber} - {invoice.supplierName} ({formatCurrency(invoice.remainingAmount)})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="payment-amount">Jumlah Pembayaran *</Label>
+                  <CurrencyInput
+                    id="payment-amount"
+                    value={paymentFormData.amount}
+                    onChange={(value) =>
+                      setPaymentFormData({ ...paymentFormData, amount: value })
+                    }
+                    placeholder="0"
+                    required
+                  />
+                  {paymentFormData.invoiceId && (
+                    <p className="text-xs text-muted-foreground">
+                      Sisa tagihan: {formatCurrency(
+                        pendingInvoices.find(i => i.id === paymentFormData.invoiceId)?.remainingAmount || 0
+                      )}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="payment-method">Metode Pembayaran *</Label>
+                  <Select
+                    value={paymentFormData.method}
+                    onValueChange={(value: any) =>
+                      setPaymentFormData({ ...paymentFormData, method: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cash">Tunai</SelectItem>
+                      <SelectItem value="transfer">Transfer</SelectItem>
+                      <SelectItem value="check">Cek</SelectItem>
+                      <SelectItem value="other">Lainnya</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="payment-reference">Referensi (No. Transfer/Cek)</Label>
+                  <Input
+                    id="payment-reference"
+                    value={paymentFormData.reference}
+                    onChange={(e) =>
+                      setPaymentFormData({ ...paymentFormData, reference: e.target.value })
+                    }
+                    placeholder="Opsional"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="payment-notes">Catatan</Label>
+                  <Textarea
+                    id="payment-notes"
+                    value={paymentFormData.notes}
+                    onChange={(e) =>
+                      setPaymentFormData({ ...paymentFormData, notes: e.target.value })
+                    }
+                    rows={2}
+                  />
+                </div>
+
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsPaymentDialogOpen(false)}
+                  >
+                    Batal
+                  </Button>
+                  <Button type="submit">Catat Pembayaran</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
+      </div>
 
-        {/* Main Content */}
-        <Card className="shadow-md">
-          <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
-            <CardTitle>Manajemen Pembayaran</CardTitle>
+      {/* Stats */}
+      <div className="grid gap-4 md:grid-cols-5">
+        <Card className="shadow-md hover:shadow-lg transition-shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Permintaan</CardTitle>
           </CardHeader>
-          <CardContent className="pt-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="requests">Permintaan Pembayaran</TabsTrigger>
-                <TabsTrigger value="payments">Riwayat Pembayaran</TabsTrigger>
-              </TabsList>
-
-              {/* Payment Requests Tab */}
-              <TabsContent value="requests" className="mt-4">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nomor Permintaan</TableHead>
-                      <TableHead>Invoice</TableHead>
-                      <TableHead>Supplier</TableHead>
-                      <TableHead>Jumlah</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Tanggal</TableHead>
-                      <TableHead className="text-right">Aksi</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paymentRequests.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8">
-                          <p className="text-muted-foreground">Tidak ada permintaan pembayaran</p>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      paymentRequests.map((request) => (
-                        <TableRow key={request.id} className="hover:bg-muted/50 transition-colors">
-                          <TableCell className="font-medium">{request.requestNumber}</TableCell>
-                          <TableCell>{request.invoiceNumber}</TableCell>
-                          <TableCell>{request.supplierName}</TableCell>
-                          <TableCell className="font-medium">
-                            {formatCurrency(request.amount)}
-                          </TableCell>
-                          <TableCell>{getStatusBadge(request.status)}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {formatDate(request.createdAt)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              {request.status === "pending" && (
-                                <>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleApproveRequest(request.id)}
-                                  >
-                                    <CheckCircle2 className="mr-2 h-4 w-4" />
-                                    Setujui
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleRejectRequest(request.id)}
-                                  >
-                                    <XCircle className="mr-2 h-4 w-4" />
-                                    Tolak
-                                  </Button>
-                                </>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </TabsContent>
-
-              {/* Payment History Tab */}
-              <TabsContent value="payments" className="mt-4">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nomor Pembayaran</TableHead>
-                      <TableHead>Invoice</TableHead>
-                      <TableHead>Supplier</TableHead>
-                      <TableHead>Jumlah</TableHead>
-                      <TableHead>Metode</TableHead>
-                      <TableHead>Tanggal Bayar</TableHead>
-                      <TableHead className="text-right">Aksi</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {payments.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8">
-                          <p className="text-muted-foreground">Tidak ada riwayat pembayaran</p>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      payments.map((payment) => (
-                        <TableRow key={payment.id} className="hover:bg-muted/50 transition-colors">
-                          <TableCell className="font-medium">{payment.paymentNumber}</TableCell>
-                          <TableCell>{payment.invoiceNumber}</TableCell>
-                          <TableCell>{payment.supplierName}</TableCell>
-                          <TableCell className="font-medium">
-                            {formatCurrency(payment.amount)}
-                          </TableCell>
-                          <TableCell className="capitalize">
-                            {payment.method === 'cash' ? 'Tunai' : 
-                             payment.method === 'transfer' ? 'Transfer' :
-                             payment.method === 'check' ? 'Cek' : payment.method}
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {formatDate(payment.paidAt)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => {
-                                setViewingPayment(payment);
-                                setIsViewDialogOpen(true);
-                              }}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </TabsContent>
-            </Tabs>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalRequests}</div>
+          </CardContent>
+        </Card>
+        <Card className="shadow-md hover:shadow-lg transition-shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Menunggu</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
+          </CardContent>
+        </Card>
+        <Card className="shadow-md hover:shadow-lg transition-shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Disetujui</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
+          </CardContent>
+        </Card>
+        <Card className="shadow-md hover:shadow-lg transition-shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Pembayaran</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalPayments}</div>
+          </CardContent>
+        </Card>
+        <Card className="shadow-md hover:shadow-lg transition-shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Jumlah</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg font-bold text-blue-600">
+              {formatCurrency(stats.totalAmount)}
+            </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Main Content */}
+      <Card className="shadow-md">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
+          <CardTitle>Manajemen Pembayaran</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="requests">Permintaan Pembayaran</TabsTrigger>
+              <TabsTrigger value="payments">Riwayat Pembayaran</TabsTrigger>
+            </TabsList>
+
+            {/* Payment Requests Tab */}
+            <TabsContent value="requests" className="mt-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nomor Permintaan</TableHead>
+                    <TableHead>Invoice</TableHead>
+                    <TableHead>Supplier</TableHead>
+                    <TableHead>Jumlah</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Tanggal</TableHead>
+                    <TableHead className="text-right">Aksi</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paymentRequests.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8">
+                        <p className="text-muted-foreground">Tidak ada permintaan pembayaran</p>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    paymentRequests.map((request) => (
+                      <TableRow key={request.id} className="hover:bg-muted/50 transition-colors">
+                        <TableCell className="font-medium">{request.requestNumber}</TableCell>
+                        <TableCell>{request.invoiceNumber}</TableCell>
+                        <TableCell>{request.supplierName}</TableCell>
+                        <TableCell className="font-medium">
+                          {formatCurrency(request.amount)}
+                        </TableCell>
+                        <TableCell>{getStatusBadge(request.status)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {formatDate(request.createdAt)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            {request.status === "pending" && (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleApproveRequest(request.id)}
+                                >
+                                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                                  Setujui
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleRejectRequest(request.id)}
+                                >
+                                  <XCircle className="mr-2 h-4 w-4" />
+                                  Tolak
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TabsContent>
+
+            {/* Payment History Tab */}
+            <TabsContent value="payments" className="mt-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nomor Pembayaran</TableHead>
+                    <TableHead>Invoice</TableHead>
+                    <TableHead>Supplier</TableHead>
+                    <TableHead>Jumlah</TableHead>
+                    <TableHead>Metode</TableHead>
+                    <TableHead>Tanggal Bayar</TableHead>
+                    <TableHead className="text-right">Aksi</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {payments.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8">
+                        <p className="text-muted-foreground">Tidak ada riwayat pembayaran</p>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    payments.map((payment) => (
+                      <TableRow key={payment.id} className="hover:bg-muted/50 transition-colors">
+                        <TableCell className="font-medium">{payment.paymentNumber}</TableCell>
+                        <TableCell>{payment.invoiceNumber}</TableCell>
+                        <TableCell>{payment.supplierName}</TableCell>
+                        <TableCell className="font-medium">
+                          {formatCurrency(payment.amount)}
+                        </TableCell>
+                        <TableCell className="capitalize">
+                          {payment.method === 'cash' ? 'Tunai' : 
+                           payment.method === 'transfer' ? 'Transfer' :
+                           payment.method === 'check' ? 'Cek' : payment.method}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {formatDate(payment.paidAt)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setViewingPayment(payment);
+                              setIsViewDialogOpen(true);
+                            }}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
 
       {/* View Payment Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
@@ -672,6 +669,6 @@ export default function PaymentsPage() {
           )}
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </div>
   );
 }
