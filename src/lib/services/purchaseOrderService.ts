@@ -20,9 +20,10 @@ class PurchaseOrderService extends StorageService<PurchaseOrder> {
 
   private initializeSampleData() {
     if (this.getAll().length === 0) {
-      const samplePO: PurchaseOrder = {
+      // PO #1 - Dapur MBG Pusat ke Toko Sumber Pangan
+      const samplePO1: PurchaseOrder = {
         id: '1',
-        poNumber: this.generatePONumber(),
+        poNumber: 'PO-202412-0001',
         kitchenId: 'dapur-mbg-1',
         kitchenName: 'Dapur MBG Pusat',
         supplierId: '1',
@@ -30,11 +31,12 @@ class PurchaseOrderService extends StorageService<PurchaseOrder> {
         items: [
           {
             inventoryItemId: '1',
-            inventoryItemName: 'Beras',
+            inventoryItemName: 'Beras Premium',
             quantity: 100,
             unit: 'kg',
             unitPrice: 12000,
             totalPrice: 1200000,
+            notes: 'Varietas IR64, beras putih berkualitas tinggi',
           },
           {
             inventoryItemId: '4',
@@ -43,25 +45,166 @@ class PurchaseOrderService extends StorageService<PurchaseOrder> {
             unit: 'liter',
             unitPrice: 18000,
             totalPrice: 360000,
+            notes: 'Minyak goreng kemasan jerigen',
+          },
+          {
+            inventoryItemId: '2',
+            inventoryItemName: 'Ayam Potong',
+            quantity: 50,
+            unit: 'kg',
+            unitPrice: 35000,
+            totalPrice: 1750000,
+            notes: 'Ayam segar, potong standar',
           },
         ],
-        subtotal: 1560000,
-        tax: 156000,
-        totalAmount: 1716000,
+        subtotal: 3310000,
+        tax: 331000,
+        totalAmount: 3641000,
         status: 'sent',
-        requestedBy: 'Admin Dapur MBG',
-        approvedBy: 'Manager Dapur',
-        approvedAt: new Date(Date.now() - 3600000).toISOString(),
-        sentAt: new Date(Date.now() - 1800000).toISOString(),
+        requestedBy: 'Ibu Sari Rahmawati',
+        approvedBy: 'Manager Operasional',
+        approvedAt: new Date(Date.now() - 7200000).toISOString(),
+        sentAt: new Date(Date.now() - 3600000).toISOString(),
         expectedDelivery: new Date(Date.now() + 3 * 86400000).toISOString(),
+        notes: 'Mohon dikirim sesuai jadwal, untuk kebutuhan produksi minggu ini',
+        workflowProgress: 40,
+        currentStep: 'Menunggu Supplier Accept',
+        createdAt: new Date(Date.now() - 2 * 86400000).toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      // PO #2 - Dapur MBG Barat ke Pasar Tradisional
+      const samplePO2: PurchaseOrder = {
+        id: '2',
+        poNumber: 'PO-202412-0002',
+        kitchenId: 'dapur-mbg-2',
+        kitchenName: 'Dapur MBG Barat',
+        supplierId: '2',
+        supplierName: 'Pasar Tradisional',
+        items: [
+          {
+            inventoryItemId: '5',
+            inventoryItemName: 'Sayur Kangkung',
+            quantity: 30,
+            unit: 'kg',
+            unitPrice: 8000,
+            totalPrice: 240000,
+            notes: 'Kangkung segar, pagi hari',
+          },
+          {
+            inventoryItemId: '6',
+            inventoryItemName: 'Tomat',
+            quantity: 25,
+            unit: 'kg',
+            unitPrice: 12000,
+            totalPrice: 300000,
+            notes: 'Tomat merah segar',
+          },
+          {
+            inventoryItemId: '7',
+            inventoryItemName: 'Bawang Merah',
+            quantity: 15,
+            unit: 'kg',
+            unitPrice: 35000,
+            totalPrice: 525000,
+            notes: 'Bawang merah kualitas baik',
+          },
+          {
+            inventoryItemId: '8',
+            inventoryItemName: 'Cabai Merah',
+            quantity: 10,
+            unit: 'kg',
+            unitPrice: 45000,
+            totalPrice: 450000,
+            notes: 'Cabai merah keriting',
+          },
+        ],
+        subtotal: 1515000,
+        tax: 151500,
+        totalAmount: 1666500,
+        status: 'sent',
+        requestedBy: 'Bapak Rudi Hartono',
+        approvedBy: 'Manager Operasional',
+        approvedAt: new Date(Date.now() - 5400000).toISOString(),
+        sentAt: new Date(Date.now() - 1800000).toISOString(),
+        expectedDelivery: new Date(Date.now() + 2 * 86400000).toISOString(),
+        notes: 'Permintaan sayur segar untuk produksi menu vegetarian',
         workflowProgress: 40,
         currentStep: 'Menunggu Supplier Accept',
         createdAt: new Date(Date.now() - 86400000).toISOString(),
         updatedAt: new Date().toISOString(),
       };
 
-      this.create(samplePO);
-      workflowService.initializeWorkflow(samplePO.id);
+      // PO #3 - Dapur MBG Timur ke PT Sayur Segar
+      const samplePO3: PurchaseOrder = {
+        id: '3',
+        poNumber: 'PO-202412-0003',
+        kitchenId: 'dapur-mbg-3',
+        kitchenName: 'Dapur MBG Timur',
+        supplierId: '3',
+        supplierName: 'PT Sayur Segar',
+        items: [
+          {
+            inventoryItemId: '1',
+            inventoryItemName: 'Beras Premium',
+            quantity: 80,
+            unit: 'kg',
+            unitPrice: 12500,
+            totalPrice: 1000000,
+            notes: 'Beras premium untuk menu spesial',
+          },
+          {
+            inventoryItemId: '9',
+            inventoryItemName: 'Wortel',
+            quantity: 20,
+            unit: 'kg',
+            unitPrice: 10000,
+            totalPrice: 200000,
+            notes: 'Wortel segar ukuran sedang',
+          },
+          {
+            inventoryItemId: '10',
+            inventoryItemName: 'Kentang',
+            quantity: 40,
+            unit: 'kg',
+            unitPrice: 15000,
+            totalPrice: 600000,
+            notes: 'Kentang granola',
+          },
+          {
+            inventoryItemId: '11',
+            inventoryItemName: 'Telur Ayam',
+            quantity: 200,
+            unit: 'butir',
+            unitPrice: 2500,
+            totalPrice: 500000,
+            notes: 'Telur ayam negeri segar',
+          },
+        ],
+        subtotal: 2300000,
+        tax: 230000,
+        totalAmount: 2530000,
+        status: 'sent',
+        requestedBy: 'Ibu Dewi Kusuma',
+        approvedBy: 'Manager Operasional',
+        approvedAt: new Date(Date.now() - 10800000).toISOString(),
+        sentAt: new Date(Date.now() - 7200000).toISOString(),
+        expectedDelivery: new Date(Date.now() + 4 * 86400000).toISOString(),
+        notes: 'Untuk kebutuhan produksi catering kantor dan sekolah',
+        workflowProgress: 40,
+        currentStep: 'Menunggu Supplier Accept',
+        createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      this.create(samplePO1);
+      this.create(samplePO2);
+      this.create(samplePO3);
+      
+      // Initialize workflows for all POs
+      workflowService.initializeWorkflow(samplePO1.id);
+      workflowService.initializeWorkflow(samplePO2.id);
+      workflowService.initializeWorkflow(samplePO3.id);
     }
   }
 
