@@ -11,7 +11,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -41,7 +40,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Plus,
-  Eye,
   CheckCircle2,
   Send,
   FileText,
@@ -52,12 +50,13 @@ import {
   Truck,
   PackageCheck,
   ClipboardCheck,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { purchaseOrderService } from "@/lib/services/purchaseOrderService";
 import { supplierService } from "@/lib/services/supplierService";
 import { inventoryService } from "@/lib/services/inventoryService";
 import { workflowService } from "@/lib/services/workflowService";
-import { invoiceService } from "@/lib/services/invoiceService";
 import { PurchaseOrder, POStatus } from "@/lib/types/workflow";
 import { toast } from "sonner";
 import { POWorkflowTracker } from "@/components/workflow/POWorkflowTracker";
@@ -66,10 +65,10 @@ import { getUserRole, type UserRole } from "@/lib/rbac";
 export default function ProcurementPage() {
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [viewingPO, setViewingPO] = useState<PurchaseOrder | null>(null);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [expandedPOId, setExpandedPOId] = useState<string | null>(null);
   const [isSupplierActionDialogOpen, setIsSupplierActionDialogOpen] = useState(false);
   const [supplierActionType, setSupplierActionType] = useState<'accept' | 'reject'>('accept');
+  const [selectedPOForAction, setSelectedPOForAction] = useState<PurchaseOrder | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [activeTab, setActiveTab] = useState("all");
   const [userRole, setUserRole] = useState<UserRole>("Admin");
@@ -189,24 +188,24 @@ export default function ProcurementPage() {
   };
 
   const handleSupplierAction = () => {
-    if (!viewingPO) return;
+    if (!selectedPOForAction) return;
 
     if (supplierActionType === 'accept') {
-      purchaseOrderService.supplierApprovePO(viewingPO.id, 'Supplier Staff');
+      purchaseOrderService.supplierApprovePO(selectedPOForAction.id, 'Supplier Staff');
       toast.success("PO diterima! Proforma invoice otomatis dibuat.");
     } else {
       if (!rejectionReason.trim()) {
         toast.error("Masukkan alasan penolakan");
         return;
       }
-      purchaseOrderService.supplierRejectPO(viewingPO.id, rejectionReason);
+      purchaseOrderService.supplierRejectPO(selectedPOForAction.id, rejectionReason);
       toast.info("PO ditolak");
     }
 
     setIsSupplierActionDialogOpen(false);
     setRejectionReason('');
+    setSelectedPOForAction(null);
     loadPurchaseOrders();
-    setIsViewDialogOpen(false);
   };
 
   const addItem = () => {
@@ -234,17 +233,17 @@ export default function ProcurementPage() {
   const getStatusBadge = (status: POStatus) => {
     const config = {
       draft: { icon: FileText, variant: "outline" as const, label: "Draft", color: "text-gray-600" },
-      pending_approval: { icon: Clock, variant: "secondary" as const, label: "Pending", color: "text-yellow-600" },
-      approved: { icon: CheckCircle2, variant: "default" as const, label: "Approved", color: "text-green-600" },
-      sent: { icon: Send, variant: "default" as const, label: "Sent", color: "text-blue-600" },
-      supplier_approved: { icon: CheckCircle2, variant: "default" as const, label: "Supplier Approved", color: "text-green-700" },
-      supplier_rejected: { icon: XCircle, variant: "destructive" as const, label: "Rejected", color: "text-red-600" },
-      in_transit: { icon: Truck, variant: "secondary" as const, label: "In Transit", color: "text-blue-600" },
-      received: { icon: PackageCheck, variant: "default" as const, label: "Received", color: "text-green-600" },
-      qc_passed: { icon: ClipboardCheck, variant: "default" as const, label: "QC Passed", color: "text-green-700" },
-      qc_failed: { icon: XCircle, variant: "destructive" as const, label: "QC Failed", color: "text-red-600" },
-      completed: { icon: CheckCircle2, variant: "default" as const, label: "Completed", color: "text-green-800" },
-      cancelled: { icon: XCircle, variant: "destructive" as const, label: "Cancelled", color: "text-red-600" },
+      pending_approval: { icon: Clock, variant: "secondary" as const, label: "Menunggu Persetujuan", color: "text-yellow-600" },
+      approved: { icon: CheckCircle2, variant: "default" as const, label: "Disetujui", color: "text-green-600" },
+      sent: { icon: Send, variant: "default" as const, label: "Terkirim", color: "text-blue-600" },
+      supplier_approved: { icon: CheckCircle2, variant: "default" as const, label: "Disetujui Supplier", color: "text-green-700" },
+      supplier_rejected: { icon: XCircle, variant: "destructive" as const, label: "Ditolak Supplier", color: "text-red-600" },
+      in_transit: { icon: Truck, variant: "secondary" as const, label: "Dalam Pengiriman", color: "text-blue-600" },
+      received: { icon: PackageCheck, variant: "default" as const, label: "Diterima", color: "text-green-600" },
+      qc_passed: { icon: ClipboardCheck, variant: "default" as const, label: "Lolos QC", color: "text-green-700" },
+      qc_failed: { icon: XCircle, variant: "destructive" as const, label: "Gagal QC", color: "text-red-600" },
+      completed: { icon: CheckCircle2, variant: "default" as const, label: "Selesai", color: "text-green-800" },
+      cancelled: { icon: XCircle, variant: "destructive" as const, label: "Dibatalkan", color: "text-red-600" },
     };
 
     const { icon: Icon, variant, label, color } = config[status];
@@ -289,7 +288,6 @@ export default function ProcurementPage() {
     completed: purchaseOrders.filter(p => p.status === "completed").length,
   };
 
-  // Check if current user can create POs (only Dapur, Admin, Manager)
   const canCreatePO = ["Admin", "Manager", "Dapur"].includes(userRole);
   const isSupplier = userRole === "Supplier";
 
@@ -298,11 +296,11 @@ export default function ProcurementPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Procurement / Purchase Order</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Pengadaan / Purchase Order</h1>
           <p className="text-muted-foreground">
             {isSupplier 
-              ? "Terima atau Tolak Purchase Order dari Dapur - Workflow: PO → Supplier Accept/Reject → Proforma Invoice → Pengiriman"
-              : "Enhanced Workflow: PO → Supplier Accept → Proforma Invoice → Pengiriman → Receiving → QC → Invoice Final → Payment"
+              ? "Terima atau Tolak Purchase Order dari Dapur - Alur Kerja: PO → Supplier Terima/Tolak → Proforma Invoice → Pengiriman"
+              : "Alur Kerja Lengkap: PO → Persetujuan Supplier → Proforma Invoice → Pengiriman → Penerimaan → QC → Invoice Akhir → Pembayaran"
             }
           </p>
         </div>
@@ -314,7 +312,7 @@ export default function ProcurementPage() {
         )}
       </div>
 
-      {/* Supplier Info Card - Only show for Suppliers */}
+      {/* Supplier Info Card */}
       {isSupplier && (
         <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30">
           <CardContent className="p-4">
@@ -341,7 +339,7 @@ export default function ProcurementPage() {
         </Card>
       )}
 
-      {/* Inline Form - Only show for authorized roles */}
+      {/* Inline Form */}
       {isFormOpen && canCreatePO && (
         <Card className="border-primary shadow-lg animate-in slide-in-from-top-2">
           <CardHeader className="relative">
@@ -365,7 +363,7 @@ export default function ProcurementPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>Supplier * (Multi-Select)</Label>
+                  <Label>Supplier * (Multi-Pilih)</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -586,7 +584,7 @@ export default function ProcurementPage() {
         </Card>
       )}
 
-      {/* Stats - Enhanced with more statuses */}
+      {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-7">
         <Card className="py-3">
           <CardHeader className="pb-1 px-4">
@@ -606,7 +604,7 @@ export default function ProcurementPage() {
         </Card>
         <Card className="py-3">
           <CardHeader className="pb-1 px-4">
-            <CardTitle className="text-xs font-medium text-center">Pending</CardTitle>
+            <CardTitle className="text-xs font-medium text-center">Menunggu</CardTitle>
           </CardHeader>
           <CardContent className="px-4 pt-1">
             <div className="text-xl font-bold text-yellow-600 text-center">{stats.pending_approval}</div>
@@ -614,7 +612,7 @@ export default function ProcurementPage() {
         </Card>
         <Card className="py-3">
           <CardHeader className="pb-1 px-4">
-            <CardTitle className="text-xs font-medium text-center">Approved</CardTitle>
+            <CardTitle className="text-xs font-medium text-center">Disetujui</CardTitle>
           </CardHeader>
           <CardContent className="px-4 pt-1">
             <div className="text-xl font-bold text-green-600 text-center">{stats.approved}</div>
@@ -622,7 +620,7 @@ export default function ProcurementPage() {
         </Card>
         <Card className="py-3">
           <CardHeader className="pb-1 px-4">
-            <CardTitle className="text-xs font-medium text-center">Sent</CardTitle>
+            <CardTitle className="text-xs font-medium text-center">Terkirim</CardTitle>
           </CardHeader>
           <CardContent className="px-4 pt-1">
             <div className="text-xl font-bold text-blue-600 text-center">{stats.sent}</div>
@@ -630,7 +628,7 @@ export default function ProcurementPage() {
         </Card>
         <Card className="py-3">
           <CardHeader className="pb-1 px-4">
-            <CardTitle className="text-xs font-medium text-center">In Transit</CardTitle>
+            <CardTitle className="text-xs font-medium text-center">Dalam Transit</CardTitle>
           </CardHeader>
           <CardContent className="px-4 pt-1">
             <div className="text-xl font-bold text-blue-700 text-center">{stats.in_transit}</div>
@@ -638,7 +636,7 @@ export default function ProcurementPage() {
         </Card>
         <Card className="py-3">
           <CardHeader className="pb-1 px-4">
-            <CardTitle className="text-xs font-medium text-center">Completed</CardTitle>
+            <CardTitle className="text-xs font-medium text-center">Selesai</CardTitle>
           </CardHeader>
           <CardContent className="px-4 pt-1">
             <div className="text-xl font-bold text-green-800 text-center">{stats.completed}</div>
@@ -649,151 +647,284 @@ export default function ProcurementPage() {
       {/* PO Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Purchase Orders</CardTitle>
+          <CardTitle>Daftar Purchase Order</CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-8">
-              <TabsTrigger value="all">All ({stats.all})</TabsTrigger>
+              <TabsTrigger value="all">Semua ({stats.all})</TabsTrigger>
               <TabsTrigger value="draft">Draft ({stats.draft})</TabsTrigger>
-              <TabsTrigger value="pending_approval">Pending ({stats.pending_approval})</TabsTrigger>
-              <TabsTrigger value="approved">Approved ({stats.approved})</TabsTrigger>
-              <TabsTrigger value="sent">Sent ({stats.sent})</TabsTrigger>
+              <TabsTrigger value="pending_approval">Menunggu ({stats.pending_approval})</TabsTrigger>
+              <TabsTrigger value="approved">Disetujui ({stats.approved})</TabsTrigger>
+              <TabsTrigger value="sent">Terkirim ({stats.sent})</TabsTrigger>
               <TabsTrigger value="in_transit">Transit ({stats.in_transit})</TabsTrigger>
-              <TabsTrigger value="received">Received</TabsTrigger>
-              <TabsTrigger value="completed">Completed ({stats.completed})</TabsTrigger>
+              <TabsTrigger value="received">Diterima</TabsTrigger>
+              <TabsTrigger value="completed">Selesai ({stats.completed})</TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-4">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>PO Number</TableHead>
+                    <TableHead className="w-12"></TableHead>
+                    <TableHead>Nomor PO</TableHead>
                     <TableHead>Supplier</TableHead>
-                    <TableHead>Items</TableHead>
+                    <TableHead>Item</TableHead>
                     <TableHead>Total</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Progress</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>Progres</TableHead>
+                    <TableHead>Dibuat</TableHead>
+                    <TableHead className="text-right">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredPOs.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8">
+                      <TableCell colSpan={9} className="text-center py-8">
                         <p className="text-muted-foreground">Tidak ada PO</p>
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredPOs.map((po) => (
-                      <TableRow key={po.id}>
-                        <TableCell className="font-medium">{po.poNumber}</TableCell>
-                        <TableCell>{po.supplierName}</TableCell>
-                        <TableCell>{po.items.length} item(s)</TableCell>
-                        <TableCell className="font-medium">
-                          {formatCurrency(po.totalAmount)}
-                        </TableCell>
-                        <TableCell>{getStatusBadge(po.status)}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className="flex-1">
-                              <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full bg-primary transition-all"
-                                  style={{ width: `${po.workflowProgress || 0}%` }}
-                                />
-                              </div>
-                            </div>
-                            <span className="text-xs font-medium text-muted-foreground w-10">
-                              {po.workflowProgress || 0}%
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {formatDate(po.createdAt)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => {
-                                setViewingPO(po);
-                                setIsViewDialogOpen(true);
-                              }}
-                              title="View"
-                            >
-                              <Eye className="h-4 w-4" />
+                      <>
+                        <TableRow 
+                          key={po.id}
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => setExpandedPOId(expandedPOId === po.id ? null : po.id)}
+                        >
+                          <TableCell>
+                            <Button variant="ghost" size="icon" className="h-6 w-6">
+                              {expandedPOId === po.id ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
                             </Button>
-                            {/* Only show management actions for non-Suppliers */}
-                            {!isSupplier && (
-                              <>
-                                {po.status === "draft" && (
+                          </TableCell>
+                          <TableCell className="font-medium">{po.poNumber}</TableCell>
+                          <TableCell>{po.supplierName}</TableCell>
+                          <TableCell>{po.items.length} item</TableCell>
+                          <TableCell className="font-medium">
+                            {formatCurrency(po.totalAmount)}
+                          </TableCell>
+                          <TableCell>{getStatusBadge(po.status)}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1">
+                                <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full bg-primary transition-all"
+                                    style={{ width: `${po.workflowProgress || 0}%` }}
+                                  />
+                                </div>
+                              </div>
+                              <span className="text-xs font-medium text-muted-foreground w-10">
+                                {po.workflowProgress || 0}%
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {formatDate(po.createdAt)}
+                          </TableCell>
+                          <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex justify-end gap-2">
+                              {!isSupplier && (
+                                <>
+                                  {po.status === "draft" && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleStatusChange(po.id, "pending_approval")}
+                                    >
+                                      Ajukan Persetujuan
+                                    </Button>
+                                  )}
+                                  {po.status === "pending_approval" && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleStatusChange(po.id, "approved")}
+                                    >
+                                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                                      Setujui
+                                    </Button>
+                                  )}
+                                  {po.status === "approved" && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleStatusChange(po.id, "sent")}
+                                    >
+                                      <Send className="mr-2 h-4 w-4" />
+                                      Kirim ke Supplier
+                                    </Button>
+                                  )}
+                                </>
+                              )}
+                              {isSupplier && po.status === 'sent' && (
+                                <div className="flex gap-2">
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => handleStatusChange(po.id, "pending_approval")}
-                                  >
-                                    Submit untuk Approval
-                                  </Button>
-                                )}
-                                {po.status === "pending_approval" && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleStatusChange(po.id, "approved")}
+                                    className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                    onClick={() => {
+                                      setSelectedPOForAction(po);
+                                      setSupplierActionType('accept');
+                                      setIsSupplierActionDialogOpen(true);
+                                    }}
                                   >
                                     <CheckCircle2 className="mr-2 h-4 w-4" />
-                                    Setujui
+                                    Terima
                                   </Button>
-                                )}
-                                {po.status === "approved" && (
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => handleStatusChange(po.id, "sent")}
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    onClick={() => {
+                                      setSelectedPOForAction(po);
+                                      setSupplierActionType('reject');
+                                      setIsSupplierActionDialogOpen(true);
+                                    }}
                                   >
-                                    <Send className="mr-2 h-4 w-4" />
-                                    Kirim ke Supplier
+                                    <XCircle className="mr-2 h-4 w-4" />
+                                    Tolak
                                   </Button>
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        {/* Expandable Detail Panel */}
+                        {expandedPOId === po.id && (
+                          <TableRow>
+                            <TableCell colSpan={9} className="bg-muted/30 p-6">
+                              <div className="space-y-6">
+                                {/* Informasi Dasar PO */}
+                                <div className="grid grid-cols-2 gap-4 pb-4 border-b">
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Supplier</p>
+                                    <p className="text-sm font-medium mt-1">{po.supplierName}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Status</p>
+                                    <div className="mt-1">{getStatusBadge(po.status)}</div>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Diminta Oleh</p>
+                                    <p className="text-sm mt-1">{po.requestedBy}</p>
+                                  </div>
+                                  {po.approvedBy && (
+                                    <div>
+                                      <p className="text-sm font-medium text-muted-foreground">Disetujui Oleh</p>
+                                      <p className="text-sm mt-1">{po.approvedBy}</p>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Workflow Tracker */}
+                                {workflowService.getByPO(po.id) && (
+                                  <div className="pb-4 border-b">
+                                    <POWorkflowTracker workflow={workflowService.getByPO(po.id)!} />
+                                  </div>
                                 )}
-                              </>
-                            )}
-                            {/* Supplier-specific actions */}
-                            {isSupplier && po.status === 'sent' && (
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                                  onClick={() => {
-                                    setViewingPO(po);
-                                    setSupplierActionType('accept');
-                                    setIsSupplierActionDialogOpen(true);
-                                  }}
-                                >
-                                  <CheckCircle2 className="mr-2 h-4 w-4" />
-                                  Terima
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                  onClick={() => {
-                                    setViewingPO(po);
-                                    setSupplierActionType('reject');
-                                    setIsSupplierActionDialogOpen(true);
-                                  }}
-                                >
-                                  <XCircle className="mr-2 h-4 w-4" />
-                                  Tolak
-                                </Button>
+
+                                {/* Action Buttons untuk Supplier */}
+                                {isSupplier && po.status === 'sent' && (
+                                  <div className="flex gap-2 pb-4 border-b">
+                                    <Button
+                                      onClick={() => {
+                                        setSelectedPOForAction(po);
+                                        setSupplierActionType('accept');
+                                        setIsSupplierActionDialogOpen(true);
+                                      }}
+                                      className="flex-1"
+                                    >
+                                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                                      Terima PO
+                                    </Button>
+                                    <Button
+                                      variant="destructive"
+                                      onClick={() => {
+                                        setSelectedPOForAction(po);
+                                        setSupplierActionType('reject');
+                                        setIsSupplierActionDialogOpen(true);
+                                      }}
+                                      className="flex-1"
+                                    >
+                                      <XCircle className="mr-2 h-4 w-4" />
+                                      Tolak PO
+                                    </Button>
+                                  </div>
+                                )}
+
+                                {/* Daftar Item - Nested Table */}
+                                <div>
+                                  <p className="text-sm font-medium text-muted-foreground mb-3">Daftar Item</p>
+                                  <div className="rounded-lg border">
+                                    <Table>
+                                      <TableHeader>
+                                        <TableRow className="bg-muted/50">
+                                          <TableHead>Nama Item</TableHead>
+                                          <TableHead>Kuantitas</TableHead>
+                                          <TableHead>Harga Satuan</TableHead>
+                                          <TableHead>Total</TableHead>
+                                          <TableHead>Catatan</TableHead>
+                                        </TableRow>
+                                      </TableHeader>
+                                      <TableBody>
+                                        {po.items.map((item, index) => (
+                                          <TableRow key={index}>
+                                            <TableCell className="font-medium">{item.inventoryItemName}</TableCell>
+                                            <TableCell>
+                                              {item.quantity} {item.unit}
+                                            </TableCell>
+                                            <TableCell>{formatCurrency(item.unitPrice)}</TableCell>
+                                            <TableCell className="font-medium">{formatCurrency(item.totalPrice)}</TableCell>
+                                            <TableCell className="text-sm text-muted-foreground">
+                                              {item.notes || "-"}
+                                            </TableCell>
+                                          </TableRow>
+                                        ))}
+                                      </TableBody>
+                                    </Table>
+                                  </div>
+                                </div>
+
+                                {/* Catatan */}
+                                {po.notes && (
+                                  <div className="pb-4 border-b">
+                                    <p className="text-sm font-medium text-muted-foreground mb-1">Catatan</p>
+                                    <p className="text-sm">{po.notes}</p>
+                                  </div>
+                                )}
+
+                                {/* Total */}
+                                <div className="space-y-2 bg-muted/50 p-4 rounded-lg">
+                                  <div className="flex justify-between text-sm">
+                                    <span>Subtotal:</span>
+                                    <span className="font-medium">{formatCurrency(po.subtotal)}</span>
+                                  </div>
+                                  <div className="flex justify-between text-sm">
+                                    <span>Pajak (10%):</span>
+                                    <span className="font-medium">{formatCurrency(po.tax)}</span>
+                                  </div>
+                                  <div className="flex justify-between text-lg font-bold border-t pt-2">
+                                    <span>Total:</span>
+                                    <span>{formatCurrency(po.totalAmount)}</span>
+                                  </div>
+                                </div>
+
+                                {/* Estimasi Pengiriman */}
+                                {po.expectedDelivery && (
+                                  <div className="text-xs text-muted-foreground">
+                                    Estimasi pengiriman: {formatDate(po.expectedDelivery)}
+                                  </div>
+                                )}
                               </div>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </>
                     ))
                   )}
                 </TableBody>
@@ -803,131 +934,12 @@ export default function ProcurementPage() {
         </CardContent>
       </Card>
 
-      {/* View PO Dialog - Enhanced with Workflow */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Purchase Order Detail - Enhanced Workflow</DialogTitle>
-            <DialogDescription>{viewingPO?.poNumber}</DialogDescription>
-          </DialogHeader>
-          {viewingPO && (
-            <div className="space-y-6">
-              {/* PO Basic Info */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Supplier</p>
-                  <p className="text-sm font-medium">{viewingPO.supplierName}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Status</p>
-                  <div className="mt-1">{getStatusBadge(viewingPO.status)}</div>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Requested By</p>
-                  <p className="text-sm">{viewingPO.requestedBy}</p>
-                </div>
-                {viewingPO.approvedBy && (
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Approved By</p>
-                    <p className="text-sm">{viewingPO.approvedBy}</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Workflow Tracker */}
-              {workflowService.getByPO(viewingPO.id) && (
-                <POWorkflowTracker workflow={workflowService.getByPO(viewingPO.id)!} />
-              )}
-
-              {/* Action Buttons Based on Status - Only for Suppliers */}
-              {isSupplier && viewingPO.status === 'sent' && (
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => {
-                      setSupplierActionType('accept');
-                      setIsSupplierActionDialogOpen(true);
-                    }}
-                    className="flex-1"
-                  >
-                    <CheckCircle2 className="mr-2 h-4 w-4" />
-                    Supplier Accept PO
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => {
-                      setSupplierActionType('reject');
-                      setIsSupplierActionDialogOpen(true);
-                    }}
-                    className="flex-1"
-                  >
-                    <XCircle className="mr-2 h-4 w-4" />
-                    Supplier Reject PO
-                  </Button>
-                </div>
-              )}
-
-              {/* Items */}
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">Items</p>
-                <div className="space-y-2">
-                  {viewingPO.items.map((item, index) => (
-                    <div key={index} className="flex justify-between p-3 border rounded-lg">
-                      <div className="flex-1">
-                        <p className="font-medium">{item.inventoryItemName}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {item.quantity} {item.unit} × {formatCurrency(item.unitPrice)}
-                        </p>
-                        {item.notes && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Note: {item.notes}
-                          </p>
-                        )}
-                      </div>
-                      <p className="font-medium">{formatCurrency(item.totalPrice)}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {viewingPO.notes && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Notes</p>
-                  <p className="text-sm mt-1">{viewingPO.notes}</p>
-                </div>
-              )}
-
-              {/* Total */}
-              <div className="space-y-2 pt-4 border-t">
-                <div className="flex justify-between text-sm">
-                  <span>Subtotal:</span>
-                  <span className="font-medium">{formatCurrency(viewingPO.subtotal)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Pajak (10%):</span>
-                  <span className="font-medium">{formatCurrency(viewingPO.tax)}</span>
-                </div>
-                <div className="flex justify-between text-lg font-bold border-t pt-2">
-                  <span>Total:</span>
-                  <span>{formatCurrency(viewingPO.totalAmount)}</span>
-                </div>
-              </div>
-
-              {viewingPO.expectedDelivery && (
-                <div className="text-xs text-muted-foreground">
-                  Estimasi pengiriman: {formatDate(viewingPO.expectedDelivery)}
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
       {/* Supplier Action Dialog */}
       <Dialog open={isSupplierActionDialogOpen} onOpenChange={setIsSupplierActionDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {supplierActionType === 'accept' ? 'Accept Purchase Order' : 'Reject Purchase Order'}
+              {supplierActionType === 'accept' ? 'Terima Purchase Order' : 'Tolak Purchase Order'}
             </DialogTitle>
             <DialogDescription>
               {supplierActionType === 'accept' 
@@ -955,7 +967,7 @@ export default function ProcurementPage() {
               onClick={handleSupplierAction}
               variant={supplierActionType === 'accept' ? 'default' : 'destructive'}
             >
-              {supplierActionType === 'accept' ? 'Accept PO' : 'Reject PO'}
+              {supplierActionType === 'accept' ? 'Terima PO' : 'Tolak PO'}
             </Button>
           </DialogFooter>
         </DialogContent>
