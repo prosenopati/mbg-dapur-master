@@ -588,60 +588,60 @@ export default function ProcurementPage() {
 
       {/* Stats - Enhanced with more statuses */}
       <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-7">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total PO</CardTitle>
+        <Card className="py-3">
+          <CardHeader className="pb-1 px-4">
+            <CardTitle className="text-xs font-medium text-center">Total PO</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.all}</div>
+          <CardContent className="px-4 pt-1">
+            <div className="text-xl font-bold text-center">{stats.all}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Draft</CardTitle>
+        <Card className="py-3">
+          <CardHeader className="pb-1 px-4">
+            <CardTitle className="text-xs font-medium text-center">Draft</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-600">{stats.draft}</div>
+          <CardContent className="px-4 pt-1">
+            <div className="text-xl font-bold text-gray-600 text-center">{stats.draft}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+        <Card className="py-3">
+          <CardHeader className="pb-1 px-4">
+            <CardTitle className="text-xs font-medium text-center">Pending</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{stats.pending_approval}</div>
+          <CardContent className="px-4 pt-1">
+            <div className="text-xl font-bold text-yellow-600 text-center">{stats.pending_approval}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Approved</CardTitle>
+        <Card className="py-3">
+          <CardHeader className="pb-1 px-4">
+            <CardTitle className="text-xs font-medium text-center">Approved</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
+          <CardContent className="px-4 pt-1">
+            <div className="text-xl font-bold text-green-600 text-center">{stats.approved}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Sent</CardTitle>
+        <Card className="py-3">
+          <CardHeader className="pb-1 px-4">
+            <CardTitle className="text-xs font-medium text-center">Sent</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{stats.sent}</div>
+          <CardContent className="px-4 pt-1">
+            <div className="text-xl font-bold text-blue-600 text-center">{stats.sent}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">In Transit</CardTitle>
+        <Card className="py-3">
+          <CardHeader className="pb-1 px-4">
+            <CardTitle className="text-xs font-medium text-center">In Transit</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-700">{stats.in_transit}</div>
+          <CardContent className="px-4 pt-1">
+            <div className="text-xl font-bold text-blue-700 text-center">{stats.in_transit}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Completed</CardTitle>
+        <Card className="py-3">
+          <CardHeader className="pb-1 px-4">
+            <CardTitle className="text-xs font-medium text-center">Completed</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-800">{stats.completed}</div>
+          <CardContent className="px-4 pt-1">
+            <div className="text-xl font-bold text-green-800 text-center">{stats.completed}</div>
           </CardContent>
         </Card>
       </div>
