@@ -72,6 +72,7 @@ export default function ProcurementPage() {
   const [rejectionReason, setRejectionReason] = useState('');
   const [activeTab, setActiveTab] = useState("all");
   const [userRole, setUserRole] = useState<UserRole>("Admin");
+  const [isSupplierGuideOpen, setIsSupplierGuideOpen] = useState(false);
   
   const suppliers = supplierService.getActiveSuppliers();
   const inventoryItems = inventoryService.getAll();
@@ -87,6 +88,16 @@ export default function ProcurementPage() {
   useEffect(() => {
     loadPurchaseOrders();
     setUserRole(getUserRole());
+    
+    // Auto-show supplier guide dialog for suppliers (only once per session)
+    const role = getUserRole();
+    if (role === "Supplier") {
+      const hasSeenGuide = sessionStorage.getItem("supplier_guide_seen");
+      if (!hasSeenGuide) {
+        setIsSupplierGuideOpen(true);
+        sessionStorage.setItem("supplier_guide_seen", "true");
+      }
+    }
   }, []);
 
   const loadPurchaseOrders = () => {
@@ -311,33 +322,6 @@ export default function ProcurementPage() {
           </Button>
         )}
       </div>
-
-      {/* Supplier Info Card */}
-      {isSupplier && (
-        <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shrink-0">
-                <Truck className="h-6 w-6 text-white" />
-              </div>
-              <div className="space-y-1 flex-1">
-                <p className="font-bold text-purple-900 dark:text-purple-100">
-                  Panduan Supplier
-                </p>
-                <p className="text-sm text-purple-700 dark:text-purple-300">
-                  Sebagai Supplier, Anda <strong>tidak dapat membuat</strong> Purchase Order. 
-                  PO dibuat oleh tim <strong>Pengelola Dapur</strong>. Anda hanya dapat:
-                </p>
-                <ul className="text-sm text-purple-700 dark:text-purple-300 list-disc list-inside ml-2 space-y-1">
-                  <li><strong>Menerima PO</strong> - Konfirmasi ketersediaan barang dan buat Proforma Invoice</li>
-                  <li><strong>Menolak PO</strong> - Berikan alasan penolakan jika tidak dapat memenuhi order</li>
-                  <li><strong>Melacak Status</strong> - Pantau progres PO dari pengiriman hingga pembayaran</li>
-                </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Inline Form */}
       {isFormOpen && canCreatePO && (
@@ -968,6 +952,52 @@ export default function ProcurementPage() {
               variant={supplierActionType === 'accept' ? 'default' : 'destructive'}
             >
               {supplierActionType === 'accept' ? 'Terima PO' : 'Tolak PO'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Supplier Guide Dialog - Auto-load for suppliers */}
+      <Dialog open={isSupplierGuideOpen} onOpenChange={setIsSupplierGuideOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shrink-0">
+                <Truck className="h-6 w-6 text-white" />
+              </div>
+              <DialogTitle className="text-xl">Panduan Supplier</DialogTitle>
+            </div>
+            <DialogDescription className="text-base leading-relaxed">
+              Sebagai Supplier, Anda <strong>tidak dapat membuat</strong> Purchase Order. 
+              PO dibuat oleh tim <strong>Pengelola Dapur</strong>. Anda hanya dapat:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
+              <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-semibold text-green-900 dark:text-green-100">Menerima PO</p>
+                <p className="text-sm text-green-700 dark:text-green-300">Konfirmasi ketersediaan barang dan buat Proforma Invoice</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
+              <XCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-semibold text-red-900 dark:text-red-100">Menolak PO</p>
+                <p className="text-sm text-red-700 dark:text-red-300">Berikan alasan penolakan jika tidak dapat memenuhi order</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+              <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-semibold text-blue-900 dark:text-blue-100">Melacak Status</p>
+                <p className="text-sm text-blue-700 dark:text-blue-300">Pantau progres PO dari pengiriman hingga pembayaran</p>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setIsSupplierGuideOpen(false)} className="w-full">
+              Mengerti
             </Button>
           </DialogFooter>
         </DialogContent>
