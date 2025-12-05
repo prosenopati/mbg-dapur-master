@@ -61,6 +61,7 @@ import { invoiceService } from "@/lib/services/invoiceService";
 import { PurchaseOrder, POStatus } from "@/lib/types/workflow";
 import { toast } from "sonner";
 import { POWorkflowTracker } from "@/components/workflow/POWorkflowTracker";
+import { getUserRole, type UserRole } from "@/lib/rbac";
 
 export default function ProcurementPage() {
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
@@ -71,6 +72,7 @@ export default function ProcurementPage() {
   const [supplierActionType, setSupplierActionType] = useState<'accept' | 'reject'>('accept');
   const [rejectionReason, setRejectionReason] = useState('');
   const [activeTab, setActiveTab] = useState("all");
+  const [userRole, setUserRole] = useState<UserRole>("Admin");
   
   const suppliers = supplierService.getActiveSuppliers();
   const inventoryItems = inventoryService.getAll();
@@ -85,6 +87,7 @@ export default function ProcurementPage() {
 
   useEffect(() => {
     loadPurchaseOrders();
+    setUserRole(getUserRole());
   }, []);
 
   const loadPurchaseOrders = () => {
@@ -286,6 +289,10 @@ export default function ProcurementPage() {
     completed: purchaseOrders.filter(p => p.status === "completed").length,
   };
 
+  // Check if current user can create POs (only Dapur, Admin, Manager)
+  const canCreatePO = ["Admin", "Manager", "Dapur"].includes(userRole);
+  const isSupplier = userRole === "Supplier";
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -293,17 +300,49 @@ export default function ProcurementPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Procurement / Purchase Order</h1>
           <p className="text-muted-foreground">
-            Enhanced Workflow: PO → Supplier Accept → Proforma Invoice → Pengiriman → Receiving → QC → Invoice Final → Payment
+            {isSupplier 
+              ? "Terima atau Tolak Purchase Order dari Dapur - Workflow: PO → Supplier Accept/Reject → Proforma Invoice → Pengiriman"
+              : "Enhanced Workflow: PO → Supplier Accept → Proforma Invoice → Pengiriman → Receiving → QC → Invoice Final → Payment"
+            }
           </p>
         </div>
-        <Button onClick={() => setIsFormOpen(!isFormOpen)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Buat PO Baru
-        </Button>
+        {canCreatePO && (
+          <Button onClick={() => setIsFormOpen(!isFormOpen)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Buat PO Baru
+          </Button>
+        )}
       </div>
 
-      {/* Inline Form */}
-      {isFormOpen && (
+      {/* Supplier Info Card - Only show for Suppliers */}
+      {isSupplier && (
+        <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shrink-0">
+                <Truck className="h-6 w-6 text-white" />
+              </div>
+              <div className="space-y-1 flex-1">
+                <p className="font-bold text-purple-900 dark:text-purple-100">
+                  Panduan Supplier
+                </p>
+                <p className="text-sm text-purple-700 dark:text-purple-300">
+                  Sebagai Supplier, Anda <strong>tidak dapat membuat</strong> Purchase Order. 
+                  PO dibuat oleh tim <strong>Pengelola Dapur</strong>. Anda hanya dapat:
+                </p>
+                <ul className="text-sm text-purple-700 dark:text-purple-300 list-disc list-inside ml-2 space-y-1">
+                  <li><strong>Menerima PO</strong> - Konfirmasi ketersediaan barang dan buat Proforma Invoice</li>
+                  <li><strong>Menolak PO</strong> - Berikan alasan penolakan jika tidak dapat memenuhi order</li>
+                  <li><strong>Melacak Status</strong> - Pantau progres PO dari pengiriman hingga pembayaran</li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Inline Form - Only show for authorized roles */}
+      {isFormOpen && canCreatePO && (
         <Card className="border-primary shadow-lg animate-in slide-in-from-top-2">
           <CardHeader className="relative">
             <Button
@@ -687,34 +726,70 @@ export default function ProcurementPage() {
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            {po.status === "draft" && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleStatusChange(po.id, "pending_approval")}
-                              >
-                                Submit untuk Approval
-                              </Button>
+                            {/* Only show management actions for non-Suppliers */}
+                            {!isSupplier && (
+                              <>
+                                {po.status === "draft" && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleStatusChange(po.id, "pending_approval")}
+                                  >
+                                    Submit untuk Approval
+                                  </Button>
+                                )}
+                                {po.status === "pending_approval" && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleStatusChange(po.id, "approved")}
+                                  >
+                                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                                    Setujui
+                                  </Button>
+                                )}
+                                {po.status === "approved" && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleStatusChange(po.id, "sent")}
+                                  >
+                                    <Send className="mr-2 h-4 w-4" />
+                                    Kirim ke Supplier
+                                  </Button>
+                                )}
+                              </>
                             )}
-                            {po.status === "pending_approval" && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleStatusChange(po.id, "approved")}
-                              >
-                                <CheckCircle2 className="mr-2 h-4 w-4" />
-                                Setujui
-                              </Button>
-                            )}
-                            {po.status === "approved" && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleStatusChange(po.id, "sent")}
-                              >
-                                <Send className="mr-2 h-4 w-4" />
-                                Kirim ke Supplier
-                              </Button>
+                            {/* Supplier-specific actions */}
+                            {isSupplier && po.status === 'sent' && (
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                  onClick={() => {
+                                    setViewingPO(po);
+                                    setSupplierActionType('accept');
+                                    setIsSupplierActionDialogOpen(true);
+                                  }}
+                                >
+                                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                                  Terima
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  onClick={() => {
+                                    setViewingPO(po);
+                                    setSupplierActionType('reject');
+                                    setIsSupplierActionDialogOpen(true);
+                                  }}
+                                >
+                                  <XCircle className="mr-2 h-4 w-4" />
+                                  Tolak
+                                </Button>
+                              </div>
                             )}
                           </div>
                         </TableCell>
@@ -764,8 +839,8 @@ export default function ProcurementPage() {
                 <POWorkflowTracker workflow={workflowService.getByPO(viewingPO.id)!} />
               )}
 
-              {/* Action Buttons Based on Status */}
-              {viewingPO.status === 'sent' && (
+              {/* Action Buttons Based on Status - Only for Suppliers */}
+              {isSupplier && viewingPO.status === 'sent' && (
                 <div className="flex gap-2">
                   <Button
                     onClick={() => {
