@@ -23,6 +23,8 @@ class PurchaseOrderService extends StorageService<PurchaseOrder> {
       const samplePO: PurchaseOrder = {
         id: '1',
         poNumber: this.generatePONumber(),
+        kitchenId: 'dapur-mbg-1',
+        kitchenName: 'Dapur MBG Pusat',
         supplierId: '1',
         supplierName: 'Toko Sumber Pangan',
         items: [
@@ -46,12 +48,13 @@ class PurchaseOrderService extends StorageService<PurchaseOrder> {
         subtotal: 1560000,
         tax: 156000,
         totalAmount: 1716000,
-        status: 'approved',
-        requestedBy: 'Admin',
-        approvedBy: 'Manager',
-        approvedAt: new Date().toISOString(),
+        status: 'sent',
+        requestedBy: 'Admin Dapur MBG',
+        approvedBy: 'Manager Dapur',
+        approvedAt: new Date(Date.now() - 3600000).toISOString(),
+        sentAt: new Date(Date.now() - 1800000).toISOString(),
         expectedDelivery: new Date(Date.now() + 3 * 86400000).toISOString(),
-        workflowProgress: 30,
+        workflowProgress: 40,
         currentStep: 'Menunggu Supplier Accept',
         createdAt: new Date(Date.now() - 86400000).toISOString(),
         updatedAt: new Date().toISOString(),
@@ -178,7 +181,7 @@ class PurchaseOrderService extends StorageService<PurchaseOrder> {
     workflowService.updateStep(id, 'proforma_invoice', 'completed');
     workflowService.updateStep(id, 'shipment', 'in_progress');
 
-    // Notify manager
+    // Notify manager/kitchen
     notificationService.notifyPOApprovedBySupplier(
       po.id,
       po.poNumber,
@@ -202,7 +205,7 @@ class PurchaseOrderService extends StorageService<PurchaseOrder> {
     return { po: updatedPO, invoice };
   }
 
-  // Supplier rejects PO
+  // Supplier rejects PO - notification sent back to kitchen/dapur
   supplierRejectPO(id: string, reason: string): PurchaseOrder | null {
     const po = this.getById(id);
     if (!po) return null;
@@ -211,7 +214,7 @@ class PurchaseOrderService extends StorageService<PurchaseOrder> {
       status: 'supplier_rejected',
       supplierRejectedAt: new Date().toISOString(),
       supplierRejectionReason: reason,
-      currentStep: 'Rejected by Supplier',
+      currentStep: 'Ditolak Supplier - Alasan: ' + reason,
     };
 
     const updatedPO = this.update(id, updates);
@@ -220,7 +223,7 @@ class PurchaseOrderService extends StorageService<PurchaseOrder> {
     // Update workflow
     workflowService.updateStep(id, 'supplier_accept', 'failed', { notes: reason });
 
-    // Notify manager
+    // Notify kitchen/dapur manager about rejection
     notificationService.notifyPORejectedBySupplier(
       po.id,
       po.poNumber,

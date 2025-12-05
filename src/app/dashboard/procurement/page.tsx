@@ -81,7 +81,9 @@ export default function ProcurementPage() {
     supplierIds: [] as string[],
     expectedDelivery: "",
     notes: "",
-    requestedBy: "Admin",
+    requestedBy: "Admin Dapur MBG",
+    kitchenId: "dapur-mbg-1",
+    kitchenName: "Dapur MBG Pusat",
     items: [] as { inventoryItemId: string; quantity: number; unitPrice: number; notes?: string }[],
   });
 
@@ -113,7 +115,9 @@ export default function ProcurementPage() {
       supplierIds: [],
       expectedDelivery: "",
       notes: "",
-      requestedBy: "Admin",
+      requestedBy: "Admin Dapur MBG",
+      kitchenId: "dapur-mbg-1",
+      kitchenName: "Dapur MBG Pusat",
       items: [],
     });
   };
@@ -163,6 +167,8 @@ export default function ProcurementPage() {
       const totalAmount = subtotal + tax;
 
       purchaseOrderService.createPO({
+        kitchenId: formData.kitchenId,
+        kitchenName: formData.kitchenName,
         supplierId: supplierId,
         supplierName: supplier.name,
         items,
@@ -184,7 +190,7 @@ export default function ProcurementPage() {
 
   const handleStatusChange = (id: string, newStatus: POStatus) => {
     if (newStatus === "approved") {
-      purchaseOrderService.updateStatus(id, newStatus, { approvedBy: "Manager" });
+      purchaseOrderService.updateStatus(id, newStatus, { approvedBy: "Manager Dapur" });
       toast.success("PO disetujui");
     } else if (newStatus === "sent") {
       purchaseOrderService.updateStatus(id, newStatus);
@@ -210,7 +216,7 @@ export default function ProcurementPage() {
         return;
       }
       purchaseOrderService.supplierRejectPO(selectedPOForAction.id, rejectionReason);
-      toast.info("PO ditolak");
+      toast.info(`PO ditolak. Alasan dikirim ke ${selectedPOForAction.kitchenName}`);
     }
 
     setIsSupplierActionDialogOpen(false);
@@ -310,8 +316,8 @@ export default function ProcurementPage() {
           <h1 className="text-3xl font-bold tracking-tight">Pengadaan / Purchase Order</h1>
           <p className="text-muted-foreground">
             {isSupplier 
-              ? "Terima atau Tolak Purchase Order dari Dapur - Alur Kerja: PO → Supplier Terima/Tolak → Proforma Invoice → Pengiriman"
-              : "Alur Kerja Lengkap: PO → Persetujuan Supplier → Proforma Invoice → Pengiriman → Penerimaan → QC → Invoice Akhir → Pembayaran"
+              ? "Kelola PO dari Dapur MBG - Terima/Tolak → Buat Proforma Invoice → Pengiriman Item"
+              : "Workflow: Buat PO → Kirim ke Supplier → Terima/Tolak Supplier → Pengiriman → QC Dapur → Invoice Final → Pembayaran"
             }
           </p>
         </div>
@@ -340,7 +346,7 @@ export default function ProcurementPage() {
             </Button>
             <CardTitle>Buat Purchase Order Baru</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Tambahkan detail pembelian dari supplier
+              Pesanan dari Dapur MBG Pusat ke Supplier
             </p>
           </CardHeader>
           <CardContent>
@@ -652,7 +658,7 @@ export default function ProcurementPage() {
                   <TableRow>
                     <TableHead className="w-12"></TableHead>
                     <TableHead>Nomor PO</TableHead>
-                    <TableHead>Supplier</TableHead>
+                    <TableHead>{isSupplier ? "Dapur Pemesan" : "Supplier"}</TableHead>
                     <TableHead>Item</TableHead>
                     <TableHead>Total</TableHead>
                     <TableHead>Status</TableHead>
@@ -686,7 +692,7 @@ export default function ProcurementPage() {
                             </Button>
                           </TableCell>
                           <TableCell className="font-medium">{po.poNumber}</TableCell>
-                          <TableCell>{po.supplierName}</TableCell>
+                          <TableCell>{isSupplier ? po.kitchenName : po.supplierName}</TableCell>
                           <TableCell>{po.items.length} item</TableCell>
                           <TableCell className="font-medium">
                             {formatCurrency(po.totalAmount)}
@@ -786,6 +792,10 @@ export default function ProcurementPage() {
                                 {/* Informasi Dasar PO */}
                                 <div className="grid grid-cols-2 gap-4 pb-4 border-b">
                                   <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Dapur Pemesan</p>
+                                    <p className="text-sm font-medium mt-1">{po.kitchenName}</p>
+                                  </div>
+                                  <div>
                                     <p className="text-sm font-medium text-muted-foreground">Supplier</p>
                                     <p className="text-sm font-medium mt-1">{po.supplierName}</p>
                                   </div>
@@ -801,6 +811,12 @@ export default function ProcurementPage() {
                                     <div>
                                       <p className="text-sm font-medium text-muted-foreground">Disetujui Oleh</p>
                                       <p className="text-sm mt-1">{po.approvedBy}</p>
+                                    </div>
+                                  )}
+                                  {po.supplierRejectionReason && (
+                                    <div className="col-span-2">
+                                      <p className="text-sm font-medium text-muted-foreground">Alasan Penolakan</p>
+                                      <p className="text-sm mt-1 text-red-600">{po.supplierRejectionReason}</p>
                                     </div>
                                   )}
                                 </div>
@@ -927,10 +943,26 @@ export default function ProcurementPage() {
             </DialogTitle>
             <DialogDescription>
               {supplierActionType === 'accept' 
-                ? 'Dengan menerima PO ini, proforma invoice akan otomatis dibuat.' 
-                : 'Masukkan alasan penolakan PO ini.'}
+                ? 'Dengan menerima PO ini, proforma invoice akan otomatis dibuat dan Anda dapat melanjutkan proses pengiriman.' 
+                : `Masukkan alasan penolakan PO ini. Alasan akan dikirim ke ${selectedPOForAction?.kitchenName}.`}
             </DialogDescription>
           </DialogHeader>
+          {selectedPOForAction && (
+            <div className="space-y-3 py-2">
+              <div className="bg-muted/50 p-3 rounded-lg space-y-1">
+                <p className="text-xs text-muted-foreground">Nomor PO</p>
+                <p className="font-medium">{selectedPOForAction.poNumber}</p>
+              </div>
+              <div className="bg-muted/50 p-3 rounded-lg space-y-1">
+                <p className="text-xs text-muted-foreground">Dapur Pemesan</p>
+                <p className="font-medium">{selectedPOForAction.kitchenName}</p>
+              </div>
+              <div className="bg-muted/50 p-3 rounded-lg space-y-1">
+                <p className="text-xs text-muted-foreground">Total Nilai PO</p>
+                <p className="font-medium text-lg">{formatCurrency(selectedPOForAction.totalAmount)}</p>
+              </div>
+            </div>
+          )}
           {supplierActionType === 'reject' && (
             <div className="space-y-2">
               <Label htmlFor="rejection-reason">Alasan Penolakan *</Label>
@@ -938,7 +970,7 @@ export default function ProcurementPage() {
                 id="rejection-reason"
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="Contoh: Harga tidak sesuai, stok tidak tersedia, dll..."
+                placeholder="Contoh: Harga tidak sesuai, stok tidak tersedia, lead time terlalu singkat, dll..."
                 rows={4}
               />
             </div>
@@ -951,7 +983,7 @@ export default function ProcurementPage() {
               onClick={handleSupplierAction}
               variant={supplierActionType === 'accept' ? 'default' : 'destructive'}
             >
-              {supplierActionType === 'accept' ? 'Terima PO' : 'Tolak PO'}
+              {supplierActionType === 'accept' ? 'Terima PO & Buat Proforma Invoice' : 'Tolak PO'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -969,29 +1001,29 @@ export default function ProcurementPage() {
             </div>
             <DialogDescription className="text-base leading-relaxed">
               Sebagai Supplier, Anda <strong>tidak dapat membuat</strong> Purchase Order. 
-              PO dibuat oleh tim <strong>Pengelola Dapur</strong>. Anda hanya dapat:
+              PO dibuat oleh <strong>Pengelola Dapur MBG</strong>. Anda hanya dapat:
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="flex items-start gap-3 p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
               <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
               <div>
-                <p className="font-semibold text-green-900 dark:text-green-100">Menerima PO</p>
-                <p className="text-sm text-green-700 dark:text-green-300">Konfirmasi ketersediaan barang dan buat Proforma Invoice</p>
+                <p className="font-semibold text-green-900 dark:text-green-100">Menerima PO dari Dapur MBG</p>
+                <p className="text-sm text-green-700 dark:text-green-300">Konfirmasi ketersediaan barang dan buat Proforma Invoice otomatis</p>
               </div>
             </div>
             <div className="flex items-start gap-3 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
               <XCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
               <div>
                 <p className="font-semibold text-red-900 dark:text-red-100">Menolak PO</p>
-                <p className="text-sm text-red-700 dark:text-red-300">Berikan alasan penolakan jika tidak dapat memenuhi order</p>
+                <p className="text-sm text-red-700 dark:text-red-300">Berikan alasan penolakan - akan dikirim ke Pengelola Dapur MBG</p>
               </div>
             </div>
             <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
               <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
               <div>
                 <p className="font-semibold text-blue-900 dark:text-blue-100">Melacak Status</p>
-                <p className="text-sm text-blue-700 dark:text-blue-300">Pantau progres PO dari pengiriman hingga pembayaran</p>
+                <p className="text-sm text-blue-700 dark:text-blue-300">Pantau progres dari pengiriman → QC Dapur → pembayaran</p>
               </div>
             </div>
           </div>

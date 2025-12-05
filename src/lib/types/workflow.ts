@@ -45,8 +45,15 @@ export interface PurchaseOrderItem {
 export interface PurchaseOrder {
   id: string;
   poNumber: string;
+  
+  // Kitchen/Dapur information (yang memesan)
+  kitchenId: string;
+  kitchenName: string;
+  
+  // Supplier information (yang menerima PO)
   supplierId: string;
   supplierName: string;
+  
   items: PurchaseOrderItem[];
   subtotal: number;
   tax: number;
