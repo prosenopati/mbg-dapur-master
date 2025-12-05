@@ -127,9 +127,6 @@ export default function Home() {
             <ChefHat className="h-6 w-6 text-primary" />
             <span className="text-xl font-bold">MBG Dapur</span>
           </div>
-          <Link href="/dashboard">
-            <Button variant="outline">Go to Dashboard</Button>
-          </Link>
         </div>
       </header>
 
@@ -160,7 +157,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Enhanced Login Card with Demo Credentials */}
+          {/* Enhanced Login Card with Quick Demo Login */}
           <Card className="shadow-xl">
             <CardHeader>
               <CardTitle className="text-xl md:text-2xl">Welcome Back</CardTitle>
@@ -239,20 +236,6 @@ export default function Home() {
                       </Button>
                     );
                   })}
-                </div>
-
-                <div className="bg-muted/50 p-3 rounded-lg text-xs space-y-2">
-                  <p className="font-medium text-foreground">💡 Demo Credentials:</p>
-                  <div className="space-y-1 text-muted-foreground">
-                    {demoCredentials.map(cred => (
-                      <p key={cred.role}>
-                        <span className="font-medium text-foreground">{cred.role}:</span> {cred.email} / {cred.password}
-                      </p>
-                    ))}
-                  </div>
-                  <p className="text-muted-foreground mt-2 pt-2 border-t">
-                    <em>Klik tombol role untuk login langsung</em>
-                  </p>
                 </div>
               </form>
             </CardContent>
